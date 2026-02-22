@@ -1,0 +1,70 @@
+/* ═══════════════════════════════════════════
+   DOCS PAGE
+═══════════════════════════════════════════ */
+#docs-sidebar-nav {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+#docs-sidebar-nav.visible { display: block; }
+#suggestions-sidebar-nav.hidden { display: none; }
+.docs-nav-item {
+  display: block;
+  padding: 5px 18px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+.docs-nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); border-left-color: var(--border); }
+.docs-nav-item.active { color: var(--accent); background: var(--accent-glow); border-left-color: var(--accent); font-weight: 500; }
+.docs-nav-item.sub { padding-left: 28px; font-size: 11.5px; }
+.docs-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+  padding: 12px 18px 6px;
+}
+#page-docs {
+  padding: 40px 48px 80px;
+  max-width: 1000px;
+}
+#page-docs h1 { font-family: 'Syne', sans-serif; font-size: 2.2em; font-weight: 800; color: var(--text-heading); margin-bottom: 16px; margin-top: 0; }
+#page-docs h2 { font-family: 'Syne', sans-serif; font-size: 1.55em; font-weight: 700; margin-top: 48px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); color: var(--text-heading); }
+#page-docs h3 { font-family: 'Syne', sans-serif; font-size: 1.2em; font-weight: 600; margin-top: 28px; margin-bottom: 12px; color: var(--text-heading); }
+#page-docs h4 { font-family: 'Syne', sans-serif; font-size: 1.05em; font-weight: 600; margin-top: 20px; margin-bottom: 8px; color: var(--text-heading); }
+#page-docs p { margin-bottom: 16px; }
+#page-docs a { color: var(--accent); text-decoration: none; }
+#page-docs a:hover { text-decoration: underline; }
+#page-docs code { font-family: 'JetBrains Mono', monospace; font-size: 0.83em; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; color: var(--accent2); }
+#page-docs pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; overflow-x: auto; margin-bottom: 20px; }
+#page-docs pre code { background: none; padding: 0; font-size: 0.82em; color: var(--text); }
+#page-docs table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.9em; }
+#page-docs th { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-heading); background: var(--bg-panel2); padding: 10px 14px; border-bottom: 2px solid var(--accent); text-align: left; }
+#page-docs td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+#page-docs tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+#page-docs blockquote { border-left: 3px solid var(--accent); padding: 12px 20px; margin: 20px 0; background: var(--accent-glow); border-radius: 0 6px 6px 0; }
+#page-docs ul, #page-docs ol { padding-left: 1.6em; margin-bottom: 16px; }
+#page-docs li { margin-bottom: 4px; }
+#page-docs hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+.docs-empty-state { text-align: center; padding: 80px 40px; color: var(--text-muted); }
+.docs-empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+.docs-empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.3em; color: var(--text-heading); margin-bottom: 8px; }
+.docs-empty-state p { font-size: 13.5px; }
+.docs-toc { background: var(--bg-panel2); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 32px; }
+.docs-toc-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px; }
+.docs-section-anchor { display: block; position: relative; top: -68px; visibility: hidden; }
