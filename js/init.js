@@ -121,6 +121,7 @@ window.pickSaveFolder = pickSaveFolder;
 window.loadPastedJson = loadPastedJson;
 window.executeConfirmAction = executeConfirmAction;
 window.removeAttachment = removeAttachment;
+window.renderDocs = renderDocs;
 window.scrollToDocSection = scrollToDocSection;
 
 function debounce(func, wait) {
