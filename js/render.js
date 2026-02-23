@@ -253,16 +253,67 @@ function parseCustomSyntax(inner) {
 
 export function renderHistory() {
   var list = document.getElementById('history-list');
+  if (!list) return;
+
+  // 1. Populate User Filter (Dynamic)
+  var userFilter = document.getElementById('filter-history-user');
+  if (userFilter && userFilter.options.length <= 1) {
+    var users = Array.from(new Set(AppState.history.map(h => h.by))).sort();
+    users.forEach(u => {
+      var opt = document.createElement('option');
+      opt.value = u;
+      opt.textContent = u;
+      userFilter.appendChild(opt);
+    });
+  }
+
+  // 2. Get Filter Values
   var search = (document.getElementById('search-history') || {}).value || '';
+  var action = (document.getElementById('filter-history-action') || {}).value || 'all';
+  var user = (document.getElementById('filter-history-user') || {}).value || 'all';
+  var start = (document.getElementById('filter-history-start') || {}).value || '';
+  var end = (document.getElementById('filter-history-end') || {}).value || '';
+  var order = (document.getElementById('sort-history-order') || {}).value || 'desc';
+
   search = search.toLowerCase();
-  var items = AppState.history.slice().reverse();
-  if (search) items = items.filter(function(h){ return (h.action+h.by+h.title+h.note).toLowerCase().indexOf(search) !== -1; });
+
+  // 3. Filter Logic
+  var items = AppState.history.filter(h => {
+    // Search
+    if (search) {
+      var haystack = (h.action + h.by + h.title + (h.note || '')).toLowerCase();
+      if (haystack.indexOf(search) === -1) return false;
+    }
+    // Action
+    if (action !== 'all' && h.action !== action) return false;
+    // User
+    if (user !== 'all' && h.by !== user) return false;
+    // Date Range
+    if (start) {
+      if (new Date(h.at) < new Date(start)) return false;
+    }
+    if (end) {
+      if (new Date(h.at) > new Date(end)) return false;
+    }
+    return true;
+  });
+
+  // 4. Sort Logic
+  items.sort((a, b) => {
+    var timeA = new Date(a.at).getTime();
+    var timeB = new Date(b.at).getTime();
+    return order === 'desc' ? timeB - timeA : timeA - timeB;
+  });
+
   if (!items.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-clipboard-list"></i></div><h3>No history yet</h3><p>Actions on suggestions will appear here.</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-clipboard-list"></i></div><h3>No matching history</h3><p>Try adjusting your filters.</p></div>';
     return;
   }
+
+  // 5. Render
   var icons = { created:'<i class="fa-solid fa-lightbulb"></i>', approved:'<i class="fa-solid fa-circle-check"></i>', rejected:'<i class="fa-solid fa-circle-xmark"></i>', archived:'<i class="fa-solid fa-box-archive"></i>', edited:'<i class="fa-solid fa-pen"></i>', restored:'<i class="fa-solid fa-rotate-left"></i>', revoked:'<i class="fa-solid fa-ban"></i>' };
   var cls = { created:'hist-created', approved:'hist-approved', rejected:'hist-rejected', archived:'hist-archived', edited:'hist-edited', restored:'hist-created', revoked:'hist-rejected' };
+  
   var html = items.map(function(h) {
     return '<div class="history-entry">' +
       '<div class="history-icon ' + (cls[h.action]||'hist-edited') + '">' + (icons[h.action]||'·') + '</div>' +

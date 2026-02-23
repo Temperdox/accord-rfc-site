@@ -159,6 +159,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const histSearch = document.getElementById('search-history');
   if (histSearch) histSearch.addEventListener('input', debouncedHistory);
   
+  // History Filter Listeners
+  ['filter-history-action', 'filter-history-user', 'filter-history-start', 'filter-history-end', 'sort-history-order'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', debouncedHistory);
+  });
+  
   const docsSearch = document.getElementById('search-docs');
   if (docsSearch) docsSearch.addEventListener('input', debouncedDocs);
 

@@ -132,8 +132,34 @@
     <div class="page-header">
       <h1>Change History</h1>
     </div>
-    <div class="page-filter-bar">
-      <input class="filter-search" id="search-history" type="text" placeholder="Search history…">
+    <div class="page-filter-bar history-filters">
+      <input class="filter-search" id="search-history" type="text" placeholder="Search title or notes…">
+      
+      <select class="form-select filter-select" id="filter-history-action" style="width:auto;">
+        <option value="all">All Actions</option>
+        <option value="created">Created</option>
+        <option value="edited">Edited</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+        <option value="archived">Archived</option>
+        <option value="restored">Restored</option>
+        <option value="revoked">Revoked</option>
+      </select>
+
+      <select class="form-select filter-select" id="filter-history-user" style="width:auto;">
+        <option value="all">All Users</option>
+      </select>
+
+      <div class="date-range-wrap" style="display:flex;align-items:center;gap:8px;">
+        <input type="datetime-local" class="form-input date-input" id="filter-history-start" title="Start Date" style="width:auto;padding:5px 8px;">
+        <span style="color:var(--text-muted);font-size:12px;">to</span>
+        <input type="datetime-local" class="form-input date-input" id="filter-history-end" title="End Date" style="width:auto;padding:5px 8px;">
+      </div>
+
+      <select class="form-select filter-select" id="sort-history-order" style="width:auto;">
+        <option value="desc">Newest First</option>
+        <option value="asc">Oldest First</option>
+      </select>
     </div>
     <div id="history-list"></div>
   </div>
