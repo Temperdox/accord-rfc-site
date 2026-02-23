@@ -4,6 +4,7 @@ import { saveData } from './storage.js';
 import { updateCounts, renderCatNav } from './categories.js';
 import { renderPage, parseMarkdown } from './render.js';
 import { addHistory } from './actions.js';
+import { ghPush } from './github.js';
 
 export function openEditor(id) {
   UI.editingId = id;
@@ -126,6 +127,7 @@ export function saveSuggestion() {
   renderPage();
   renderCatNav();
   closeModal('modal-editor');
+  ghPush(true); // Auto-save
 }
 
 export function tbInsert(type) {

@@ -3,6 +3,7 @@ import { getCatById, showModal, closeModal, showToast, escHtml } from './ui.js';
 import { saveData } from './storage.js';
 import { renderPage } from './render.js';
 import { openEditor } from './editor.js';
+import { ghPush } from './github.js';
 
 export function openCategoryPicker() {
   UI.editingId = null;
