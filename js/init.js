@@ -52,12 +52,18 @@ window.switchPageTab = (tab) => {
     docsPage.classList.add('active');
     renderDocs();
     renderMermaidInContainer(document.getElementById('docs-content'));
-    mainEl.addEventListener('scroll', updateDocsActiveNav, { passive: true });
+    
+    if (!window._throttledDocsNav) {
+      window._throttledDocsNav = debounce(updateDocsActiveNav, 100);
+    }
+    mainEl.addEventListener('scroll', window._throttledDocsNav, { passive: true });
   } else {
     sugNav.classList.remove('hidden');
     docsNav.classList.remove('visible');
     document.getElementById('page-docs').classList.remove('active');
-    mainEl.removeEventListener('scroll', updateDocsActiveNav);
+    if (window._throttledDocsNav) {
+      mainEl.removeEventListener('scroll', window._throttledDocsNav);
+    }
     var activeView = UI.currentView;
     ['pending','approved','rejected','archived','history'].forEach(function(v) {
       var p = document.getElementById('page-' + v);
@@ -117,6 +123,18 @@ window.executeConfirmAction = executeConfirmAction;
 window.removeAttachment = removeAttachment;
 window.scrollToDocSection = scrollToDocSection;
 
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   loadData();
   ghLoadConfig();
@@ -125,6 +143,18 @@ document.addEventListener('DOMContentLoaded', function() {
   updateCounts();
   renderPage();
   renderCatNav();
+  
+  // Optimized Search Listeners
+  const debouncedRender = debounce(renderPage, 250);
+  const debouncedHistory = debounce(renderHistory, 250);
+  
+  ['pending', 'approved', 'rejected', 'archived'].forEach(id => {
+    const el = document.getElementById('search-' + id);
+    if (el) el.addEventListener('input', debouncedRender);
+  });
+  const histSearch = document.getElementById('search-history');
+  if (histSearch) histSearch.addEventListener('input', debouncedHistory);
+
   document.getElementById('topbar-team').textContent = AppState.config.teamName;
   document.getElementById('settings-team').value = AppState.config.teamName;
   document.addEventListener('click', function(e) {

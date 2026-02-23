@@ -83,16 +83,16 @@ export function renderCardHTML(s) {
     attHtml = '<div class="card-attachments">';
     s.attachments.forEach(function(a, i) {
       if (a.type === 'image') {
-        attHtml += '<div class="card-attachment"><img src="' + a.data + '" alt="attachment"><div class="card-attachment-label"><i class="fa-solid fa-image"></i> ' + escHtml(a.name || 'image') + '</div></div>';
+        attHtml += '<div class="card-attachment"><img src="' + a.data + '" alt="attachment" loading="lazy"><div class="card-attachment-label"><i class="fa-solid fa-image"></i> ' + escHtml(a.name || 'image') + '</div></div>';
       } else if (a.type === 'video') {
-        attHtml += '<div class="card-attachment"><video src="' + a.data + '" controls></video><div class="card-attachment-label"><i class="fa-solid fa-film"></i> ' + escHtml(a.name || 'video') + '</div></div>';
+        attHtml += '<div class="card-attachment"><video src="' + a.data + '" controls preload="metadata"></video><div class="card-attachment-label"><i class="fa-solid fa-film"></i> ' + escHtml(a.name || 'video') + '</div></div>';
       } else if (a.type === 'html') {
         var blob = new Blob([a.data], {type:'text/html'});
         var url = URL.createObjectURL(blob);
         var fwClass = a.fullwidth ? ' fullwidth' : '';
-        attHtml += '<div class="card-attachment' + fwClass + '"><iframe src="' + url + '" sandbox="allow-scripts allow-same-origin"></iframe><div class="card-attachment-label"><i class="fa-solid fa-code"></i> ' + escHtml(a.name || 'HTML Block') + '</div></div>';
+        attHtml += '<div class="card-attachment' + fwClass + '"><iframe src="' + url + '" sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe><div class="card-attachment-label"><i class="fa-solid fa-code"></i> ' + escHtml(a.name || 'HTML Block') + '</div></div>';
       } else if (a.type === 'mermaid') {
-        attHtml += '<div class="mermaid-wrap"><div class="mermaid-label"><i class="fa-solid fa-diagram-project"></i> Mermaid Diagram</div><div class="mermaid" id="mermaid-' + s.id + '-' + i + '">' + escHtml(a.data) + '</div></div>';
+        attHtml += '<div class="mermaid-wrap"><div class="mermaid-label"><i class="fa-solid fa-diagram-project"></i> Mermaid Diagram</div><div class="mermaid pending-render" id="mermaid-' + s.id + '-' + i + '">' + escHtml(a.data) + '</div></div>';
       }
     });
     attHtml += '</div>';
@@ -135,11 +135,27 @@ export function renderCardHTML(s) {
     '</div>';
 }
 
+var mermaidObserver = null;
 export function renderMermaidInContainer(container) {
-  var mermaidEls = container.querySelectorAll('.mermaid');
-  if (mermaidEls.length) {
-    mermaid.run({ nodes: Array.from(mermaidEls) });
+  var mermaidEls = container.querySelectorAll('.mermaid.pending-render');
+  if (!mermaidEls.length) return;
+
+  if (!mermaidObserver) {
+    mermaidObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          var el = entry.target;
+          if (el.classList.contains('pending-render')) {
+            el.classList.remove('pending-render');
+            mermaid.run({ nodes: [el] });
+            mermaidObserver.unobserve(el);
+          }
+        }
+      });
+    }, { rootMargin: '200px' });
   }
+
+  mermaidEls.forEach(el => mermaidObserver.observe(el));
 }
 
 export function parseMarkdown(text) {

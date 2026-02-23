@@ -245,3 +245,8 @@ textarea {
   }
 }
 
+/* GPU Acceleration for smoother animations */
+.modal, #sidebar, #topbar, .notif-toast {
+  will-change: transform;
+  backface-visibility: hidden;
+}
