@@ -57,18 +57,21 @@
   .page-header h1 { font-size: 1.4em; }
 
   /* History Filters Mobile */
-  .history-filters {
+  .history-filters-grid {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+  .filter-select {
+    width: 100%;
+  }
+  .date-range-inputs {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
   }
-  .history-filters .filter-select, 
-  .history-filters .date-range-wrap {
-    width: 100% !important;
-  }
-  .history-filters .date-input {
-    flex: 1;
-    min-width: 0;
+  .date-sep {
+    text-align: center;
+    height: 10px;
+    line-height: 10px;
   }
 
   /* Modal Adjustments */

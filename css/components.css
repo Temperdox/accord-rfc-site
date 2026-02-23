@@ -270,6 +270,55 @@
 .filter-search:focus { border-color: var(--accent2); }
 .filter-search::placeholder { color: var(--text-muted); }
 
+/* History Filter Grid */
+.history-filters-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  background: var(--bg-panel);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.filter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+.filter-select {
+  width: 140px;
+  height: 36px;
+  padding: 0 10px;
+}
+.date-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.date-input {
+  width: auto;
+  height: 36px;
+  padding: 0 10px;
+}
+.date-sep {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.main-search .filter-search {
+  height: 36px;
+  margin: 0;
+}
+
 /* Theme Toggle */
 .toggle-theme {
   display: flex;
