@@ -171,3 +171,8 @@ export function openDataModal() {
 
   showModal('modal-data');
 }
+
+export function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.toggle('open');
+}

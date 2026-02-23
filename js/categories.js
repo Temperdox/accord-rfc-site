@@ -160,6 +160,8 @@ export function filterCategory(catId, btn) {
   document.querySelectorAll('.cat-nav-item').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
   renderPage();
+  var sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.remove('open');
 }
 
 export function updateCounts() {

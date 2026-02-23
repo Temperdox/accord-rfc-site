@@ -312,6 +312,11 @@ export function togglePatVisibility() {
   if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
+export function toggleGhConfig() {
+  var cfg = document.getElementById('dm-gh-config');
+  if (cfg) cfg.classList.toggle('open');
+}
+
 export function relTime(iso) {
   if (!iso) return '';
   var diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);

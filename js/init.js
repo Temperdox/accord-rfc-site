@@ -9,8 +9,8 @@ import '../css/docs.css';
 
 import { AppState, UI } from './state.js';
 import { loadData } from './storage.js';
-import { ghLoadConfig, ghTestConnection, ghSaveConfig, ghPull, ghPush, togglePatVisibility } from './github.js';
-import { renderEmojiGrids, toggleTheme, openSettings, saveSettings, toggleEmojiPicker, onTagInput, hideSugAfterDelay, openDataModal, closeModal, selectEmoji, selectTag, toggleTheme as toggleThemeFunc } from './ui.js';
+import { ghLoadConfig, ghTestConnection, ghSaveConfig, ghPull, ghPush, togglePatVisibility, toggleGhConfig } from './github.js';
+import { renderEmojiGrids, toggleTheme, openSettings, saveSettings, toggleEmojiPicker, onTagInput, hideSugAfterDelay, openDataModal, closeModal, selectEmoji, selectTag, toggleSidebar } from './ui.js';
 import { updateCounts, renderCatNav, openCategoryPicker, filterCatOptions, saveNewCategory, openNewCatModal, selectCat, proceedToEditor, filterCategory } from './categories.js';
 import { renderPage, renderHistory, renderMermaidInContainer } from './render.js';
 import { renderInfoBoxes, tbInsert, togglePreview, triggerAttach, handleDropZoneFiles, confirmCodeInsert, openCodeInsert, saveSuggestion, removeAttachment } from './editor.js';
@@ -28,6 +28,8 @@ window.setView = (view, btn) => {
   renderCatNav();
   if (view === 'history') renderHistory();
   else renderPage();
+  var sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.remove('open');
 };
 
 window.filterCategory = filterCategory;
@@ -60,10 +62,13 @@ window.switchPageTab = (tab) => {
       if (p) p.classList.toggle('active', v === activeView);
     });
   }
+  var sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.remove('open');
 };
 
 window.openDataModal = openDataModal;
 window.openSettings = openSettings;
+window.toggleSidebar = toggleSidebar;
 window.toggleTheme = toggleTheme;
 window.openCategoryPicker = openCategoryPicker;
 window.renderPage = renderPage;
@@ -99,6 +104,7 @@ window.ghTestConnection = ghTestConnection;
 window.ghSaveConfig = ghSaveConfig;
 window.ghPull = ghPull;
 window.ghPush = ghPush;
+window.toggleGhConfig = toggleGhConfig;
 window.exportZip = exportZip;
 window.importZip = importZip;
 window.openPasteJson = openPasteJson;

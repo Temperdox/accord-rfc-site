@@ -61,6 +61,7 @@
 
 <!-- TOPBAR -->
 <div id="topbar">
+  <button id="menu-toggle" class="topbar-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
   <div id="topbar-title">
     Suggestion Manager <span id="topbar-team"></span>
   </div>
@@ -141,6 +142,9 @@
 
 <!-- TOAST NOTIFICATION -->
 <div class="notif-toast" id="toast"></div>
+
+<!-- MOBILE OVERLAY -->
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- ═══ MODAL: Category Picker ═══ -->
 <div class="modal-overlay" id="modal-cat-picker">
