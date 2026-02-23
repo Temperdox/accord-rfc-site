@@ -131,7 +131,77 @@ export async function ghCreateBlob(content, encoding) {
   return r.sha;
 }
 
-// ─── SMART PUSH ─────────────────────────────
+// ─── PULL & MERGE ───────────────────────────
+// Fetches remote data and merges it into local AppState without overwriting local intent
+export async function ghPullAndMerge(quiet = false) {
+  if (!GH.pat || !GH.repo) return;
+  if (!quiet) dmSetBusy(true);
+  
+  try {
+    var basePath = GH.path ? GH.path + '/' : '';
+    var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
+    var remoteSha = refData.object.sha;
+    
+    if (remoteSha === GH.headSha) {
+      if (!quiet) showToast('Data is already up to date.', 'info');
+      return remoteSha;
+    }
+
+    if (!quiet) dmLog('Remote changes detected. Merging...');
+    
+    var jsonPath = basePath + 'accord-data.json';
+    var fileData = await ghAPI('GET', '/repos/'+GH.repo+'/contents/'+encodeURIComponent(jsonPath)+'?ref='+encodeURIComponent(GH.branch));
+    var jsonText = decodeBase64Unicode(fileData.content.replace(/\n/g,''));
+    var remoteData = JSON.parse(jsonText);
+
+    // Merge Strategy: 
+    // 1. Suggestions: Add missing ones, keep local if IDs match (Last Write Wins)
+    var localSugMap = new Map(AppState.suggestions.map(s => [s.id, s]));
+    (remoteData.suggestions || []).forEach(rs => {
+      if (!localSugMap.has(rs.id)) {
+        AppState.suggestions.push(rs);
+      } else {
+        // Conflict on specific ID: Local wins for the current session's push
+        // We could compare updatedAt, but local user intent is usually priority
+      }
+    });
+
+    // 2. Categories: Union by ID
+    var localCatMap = new Map(AppState.categories.map(c => [c.id, c]));
+    (remoteData.categories || []).forEach(rc => {
+      if (!localCatMap.has(rc.id)) AppState.categories.push(rc);
+    });
+
+    // 3. History: Union by ID
+    var localHistMap = new Set(AppState.history.map(h => h.id));
+    (remoteData.history || []).forEach(rh => {
+      if (!localHistMap.has(rh.id)) AppState.history.push(rh);
+    });
+
+    // 4. Docs: Overwrite (usually static reference)
+    if (remoteData.docs) AppState.docs = remoteData.docs;
+
+    saveData();
+    GH.headSha = remoteSha;
+    ghSaveConfigLocal();
+    
+    updateCounts();
+    renderPage();
+    renderCatNav();
+    
+    if (!quiet) showToast('Merged remote changes ✓', 'success');
+    return remoteSha;
+
+  } catch(e) {
+    if (!quiet) showToast('Merge failed: ' + e.message, 'error');
+    console.error('Merge error', e);
+    throw e;
+  } finally {
+    if (!quiet) dmSetBusy(false);
+  }
+}
+
+// ─── PUSH ───────────────────────────────────
 export async function ghPush(auto = false) {
   ghLoadConfig();
   if (!GH.pat || !GH.repo) {
@@ -143,73 +213,23 @@ export async function ghPush(auto = false) {
   }
   
   if (!auto) {
-    var pushBtn = document.getElementById('gh-push-btn');
-    if (pushBtn) pushBtn.textContent = 'Pushing…';
     dmSetBusy(true);
     dmClearLog();
-  } else {
-    // Quiet mode for auto-push
-    showToast('Saving to cloud...', 'info');
   }
 
   try {
-    var basePath = GH.path ? GH.path + '/' : '';
-
-    if (!auto) dmLog('Getting branch ref…');
-    var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
-    var latestCommitSha = refData.object.sha;
+    // ALWAYS pull and merge before pushing to ensure we are based on latest
+    var latestCommitSha = await ghPullAndMerge(true); 
     
-    // Conflict Detection
-    if (GH.headSha && latestCommitSha !== GH.headSha) {
-      if (!auto) dmLog('⚠️ Remote has changed! Merging...', 'warn');
-      showToast('Remote changes detected. Merging...', 'warn');
-      
-      // Fetch remote data to merge
-      var commitData = await ghAPI('GET', '/repos/'+GH.repo+'/git/commits/'+latestCommitSha);
-      var baseTreeSha = commitData.tree.sha;
-      var jsonPath = basePath + 'accord-data.json';
-      var fileData = await ghAPI('GET', '/repos/'+GH.repo+'/contents/'+encodeURIComponent(jsonPath)+'?ref='+encodeURIComponent(GH.branch));
-      var jsonText = decodeBase64Unicode(fileData.content.replace(/\n/g,''));
-      var remoteData = JSON.parse(jsonText);
-      
-      // Merge Strategy: Combine lists, prefer local for conflicts if necessary, but here we just union by ID
-      // Suggestions
-      var localMap = new Map(AppState.suggestions.map(s => [s.id, s]));
-      (remoteData.suggestions || []).forEach(s => {
-        if (!localMap.has(s.id)) {
-          AppState.suggestions.push(s); // Add new remote ones
-        } else {
-          // If both exist, we keep local version (Last Write Wins from our perspective)
-          // Ideally we check timestamps, but local edits are "newer" user intent
-        }
-      });
-      // History (append missing)
-      var histMap = new Set(AppState.history.map(h => h.id));
-      (remoteData.history || []).forEach(h => {
-        if (!histMap.has(h.id)) AppState.history.push(h);
-      });
-      // Categories (union by id)
-      var catMap = new Map(AppState.categories.map(c => [c.id, c]));
-      (remoteData.categories || []).forEach(c => {
-        if (!catMap.has(c.id)) AppState.categories.push(c);
-      });
-      
-      saveData();
-      if (!auto) {
-        updateCounts();
-        renderPage();
-        renderCatNav();
-      }
-      
-      // Update our base to the new latest so we can push on top of it
-      GH.headSha = latestCommitSha;
+    // If pullAndMerge didn't return a SHA (e.g. not configured), get it manually
+    if (!latestCommitSha) {
+      var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
+      latestCommitSha = refData.object.sha;
     }
 
-    // Proceed with Push
-    var commitData = await ghAPI('GET', '/repos/'+GH.repo+'/git/commits/'+latestCommitSha);
-    var baseTreeSha = commitData.tree.sha;
-
-    if (!auto) dmLog('Serialising data…');
+    var basePath = GH.path ? GH.path + '/' : '';
+    if (!auto) dmLog('Preparing data for upload...');
+    
     var exportState = JSON.parse(JSON.stringify(AppState));
     var treeItems = [];
 
@@ -226,7 +246,7 @@ export async function ghPush(auto = false) {
             var ext = match[1].split('/')[1] || 'bin';
             var fname = s.id + '_' + ai + '_' + sanitizeFilename(a.name || ('file.'+ext));
             var attPath = basePath + 'attachments/' + fname;
-            if (!auto) dmLog('  Uploading attachment ' + attCount + '/' + totalAtt + ': ' + fname);
+            if (!auto) dmLog('  Uploading: ' + fname);
             var blobSha = await ghCreateBlob(match[2], 'base64');
             treeItems.push({ path: attPath, mode: '100644', type: 'blob', sha: blobSha });
             a.data = 'attachments/' + fname;
@@ -235,145 +255,62 @@ export async function ghPush(auto = false) {
       }
     }
 
-    if (!auto) dmLog('Creating JSON blob…');
     var jsonContent = JSON.stringify(exportState, null, 2);
     var jsonBlobSha = await ghCreateBlob(jsonContent, 'utf-8');
     treeItems.push({ path: basePath + 'accord-data.json', mode: '100644', type: 'blob', sha: jsonBlobSha });
 
-    if (!auto) dmLog('Creating tree…');
+    var commitData = await ghAPI('GET', '/repos/'+GH.repo+'/git/commits/'+latestCommitSha);
+    var baseTreeSha = commitData.tree.sha;
+
     var newTree = await ghAPI('POST', '/repos/'+GH.repo+'/git/trees', {
       base_tree: baseTreeSha,
       tree: treeItems
     });
 
     var now = new Date();
-    var msg = (auto ? 'Auto-save' : 'Accord sync') + ' — ' + now.toISOString().replace('T',' ').slice(0,19) + ' UTC\n\n' +
-      AppState.suggestions.length + ' suggestions · ' + AppState.history.length + ' history entries';
+    var msg = (auto ? 'Auto-save' : 'Manual sync') + ' — ' + now.toISOString().replace('T',' ').slice(0,19) + ' UTC';
     
-    if (!auto) dmLog('Creating commit…');
     var newCommit = await ghAPI('POST', '/repos/'+GH.repo+'/git/commits', {
       message: msg,
       tree: newTree.sha,
       parents: [latestCommitSha]
     });
 
-    if (!auto) dmLog('Updating branch ref…');
     await ghAPI('PATCH', '/repos/'+GH.repo+'/git/refs/heads/'+GH.branch, {
       sha: newCommit.sha
     });
 
     GH.lastPushAt  = now.toISOString();
     GH.lastPushSha = newCommit.sha;
-    GH.headSha     = newCommit.sha; // We are now based on this commit
+    GH.headSha     = newCommit.sha; 
     ghSaveConfigLocal();
     
-    if (!auto) dmLog('✓ Pushed! Commit: ' + newCommit.sha.slice(0,7), 'ok');
-    showToast('Saved to cloud ✓', 'success');
+    if (!auto) showToast('Sync complete ✓', 'success');
+    else showToast('Changes saved to cloud ✓', 'success');
 
   } catch(e) {
-    if (!auto) dmLog('✗ Push failed: ' + e.message, 'err');
-    showToast('Auto-save failed: ' + e.message, 'error');
+    showToast('Sync failed: ' + e.message, 'error');
     console.error(e);
+  } finally {
+    if (!auto) dmSetBusy(false);
   }
-
-  if (!auto) dmSetBusy(false);
 }
 
-// ─── PULL ──────────────────────────────────
+// ─── FULL PULL (Manual) ────────────────────
 export async function ghPull() {
-  ghLoadConfig();
-  if (!GH.pat || !GH.repo) {
-    showToast('Configure GitHub first.', 'error');
-    document.getElementById('dm-gh-config').classList.add('open');
-    return;
-  }
-  var pullBtn = document.getElementById('gh-pull-btn');
-  pullBtn.textContent = 'Pulling…';
-  dmSetBusy(true);
-  dmClearLog();
-
-  try {
-    var basePath = GH.path ? GH.path + '/' : '';
-
-    // Get current head SHA first
-    var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
-    var latestCommitSha = refData.object.sha;
-
-    dmLog('Fetching accord-data.json…');
-    var jsonPath = basePath + 'accord-data.json';
-    var fileData = await ghAPI('GET', '/repos/'+GH.repo+'/contents/'+encodeURIComponent(jsonPath)+'?ref='+encodeURIComponent(GH.branch));
-    var jsonText = decodeBase64Unicode(fileData.content.replace(/\n/g,''));
-    var d = JSON.parse(jsonText);
-    dmLog('  JSON fetched (' + (jsonText.length/1024).toFixed(1) + ' KB)', 'ok');
-
-    var attPaths = [];
-    (d.suggestions||[]).forEach(function(s) {
-      (s.attachments||[]).forEach(function(a, ai) {
-        if (a.data && a.data.startsWith('attachments/')) {
-          attPaths.push({ s: s, a: a, ai: ai });
-        }
-      });
-    });
-
-    dmLog('Fetching ' + attPaths.length + ' attachment' + (attPaths.length!==1?'s':'') + '…');
-    for (var pi = 0; pi < attPaths.length; pi++) {
-      var item = attPaths[pi];
-      var relPath = item.a.data;
-      var fullPath = basePath + relPath;
-      dmLog('  ' + (pi+1) + '/' + attPaths.length + ': ' + relPath);
-      try {
-        var attFile = await ghAPI('GET', '/repos/'+GH.repo+'/contents/'+encodeURIComponent(fullPath)+'?ref='+encodeURIComponent(GH.branch));
-        var b64 = attFile.content.replace(/\n/g,'');
-        var mime = item.a.type === 'image'
-          ? guessMime(relPath, 'image/png')
-          : guessMime(relPath, 'video/mp4');
-        item.a.data = 'data:' + mime + ';base64,' + b64;
-      } catch(ae) {
-        dmLog('  ⚠ Could not fetch ' + relPath + ': ' + ae.message, 'warn');
-      }
-    }
-
-    var preserved = AppState.config.teamName;
-    AppState.config      = d.config      || AppState.config;
-    AppState.categories  = d.categories  || [];
-    AppState.tags        = d.tags        || [];
-    AppState.suggestions = d.suggestions || [];
-    AppState.history     = d.history     || [];
-    AppState.docs        = d.docs        || [];
-    if (!AppState.config.teamName) AppState.config.teamName = preserved;
-    saveData();
-    updateCounts();
-    renderPage();
-    renderCatNav();
-    document.getElementById('topbar-team').textContent   = AppState.config.teamName;
-    document.getElementById('settings-team').value       = AppState.config.teamName;
-
-    GH.lastPullAt = new Date().toISOString();
-    GH.headSha = latestCommitSha; // Update our base
-    ghSaveConfigLocal();
-    dmLog('✓ Pull complete — ' + AppState.suggestions.length + ' suggestions loaded.', 'ok');
-    showToast('Pulled from GitHub ✓', 'success');
-
-  } catch(e) {
-    dmLog('✗ Pull failed: ' + e.message, 'err');
-    showToast('Pull failed: ' + e.message, 'error');
-    console.error(e);
-  }
-
-  dmSetBusy(false);
+  await ghPullAndMerge(false);
 }
 
 // ─── WATCHDOG ──────────────────────────────
 export async function ghCheckForUpdates() {
-  if (!GH.pat || !GH.repo || !GH.headSha) return;
+  if (!GH.pat || !GH.repo || !GH.headSha || UI.busy) return;
   try {
     var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
-    var remoteSha = refData.object.sha;
-    if (remoteSha !== GH.headSha) {
-      showToast('New data available! Click Data > Pull.', 'info');
-      // Optional: We could auto-pull here, but prompting is safer for user focus
+    if (refData.object.sha !== GH.headSha) {
+      showToast('Teammate made changes. Merging...', 'info');
+      await ghPullAndMerge(true);
     }
-  } catch(e) { console.warn('Watchdog check failed', e); }
+  } catch(e) { console.warn('Watchdog failed', e); }
 }
 
 export function decodeBase64Unicode(b64) {
