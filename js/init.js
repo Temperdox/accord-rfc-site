@@ -11,7 +11,7 @@ import '../css/responsive.css';
 import { AppState, UI } from './state.js';
 import { loadData } from './storage.js';
 import { ghLoadConfig, ghTestConnection, ghSaveConfig, ghPull, ghPush, togglePatVisibility, toggleGhConfig, ghCheckForUpdates } from './github.js';
-import { renderEmojiGrids, toggleTheme, openSettings, saveSettings, toggleEmojiPicker, onTagInput, hideSugAfterDelay, openDataModal, closeModal, selectEmoji, selectTag, toggleSidebar } from './ui.js';
+import { renderEmojiGrids, toggleTheme, openSettings, saveSettings, toggleEmojiPicker, onTagInput, hideSugAfterDelay, openDataModal, closeModal, selectEmoji, selectTag, toggleSidebar, openNotifications, clearNotifications, updateNotifBadge } from './ui.js';
 import { updateCounts, renderCatNav, openCategoryPicker, filterCatOptions, saveNewCategory, openNewCatModal, selectCat, proceedToEditor, filterCategory } from './categories.js';
 import { renderPage, renderHistory, renderMermaidInContainer } from './render.js';
 import { renderInfoBoxes, tbInsert, togglePreview, triggerAttach, handleDropZoneFiles, confirmCodeInsert, openCodeInsert, saveSuggestion, removeAttachment } from './editor.js';
@@ -77,6 +77,8 @@ window.switchPageTab = (tab) => {
 
 window.openDataModal = openDataModal;
 window.openSettings = openSettings;
+window.openNotifications = openNotifications;
+window.clearNotifications = clearNotifications;
 window.toggleSidebar = toggleSidebar;
 window.toggleTheme = toggleTheme;
 window.openCategoryPicker = openCategoryPicker;
@@ -148,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Optimized Search Listeners
   const debouncedRender = debounce(renderPage, 250);
   const debouncedHistory = debounce(renderHistory, 250);
+  const debouncedDocs = debounce(renderDocs, 250);
   
   ['pending', 'approved', 'rejected', 'archived'].forEach(id => {
     const el = document.getElementById('search-' + id);
@@ -155,6 +158,11 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   const histSearch = document.getElementById('search-history');
   if (histSearch) histSearch.addEventListener('input', debouncedHistory);
+  
+  const docsSearch = document.getElementById('search-docs');
+  if (docsSearch) docsSearch.addEventListener('input', debouncedDocs);
+
+  updateNotifBadge();
 
   document.getElementById('topbar-team').textContent = AppState.config.teamName;
   document.getElementById('settings-team').value = AppState.config.teamName;

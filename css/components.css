@@ -185,6 +185,44 @@
 .notif-toast.error { border-color: rgba(224,67,90,0.3); }
 .notif-toast.info { border-color: rgba(61,122,237,0.3); }
 
+/* Notifications */
+.notif-badge {
+  position: absolute;
+  top: -2px; right: -2px;
+  background: var(--danger);
+  color: white;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 10px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-panel);
+}
+.notif-badge.show { display: flex; }
+
+.notif-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-glow); color: var(--accent);
+  flex-shrink: 0; font-size: 14px;
+}
+.notif-item-content { flex: 1; }
+.notif-item-title { font-size: 13px; font-weight: 600; color: var(--text-heading); margin-bottom: 2px; }
+.notif-item-meta { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
 /* Section divider */
 .section-divider {
   display: flex; align-items: center; gap: 12px;

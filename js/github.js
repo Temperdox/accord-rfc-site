@@ -1,5 +1,5 @@
 import { AppState, UI, GH } from './state.js';
-import { showToast, showModal, closeModal, escHtml } from './ui.js';
+import { showToast, showModal, closeModal, escHtml, updateNotifBadge } from './ui.js';
 import { saveData } from './storage.js';
 import { updateCounts, renderCatNav } from './categories.js';
 import { renderPage } from './render.js';
@@ -154,15 +154,21 @@ export async function ghPullAndMerge(quiet = false) {
     var jsonText = decodeBase64Unicode(fileData.content.replace(/\n/g,''));
     var remoteData = JSON.parse(jsonText);
 
-    // Merge Strategy: 
-    // 1. Suggestions: Add missing ones, keep local if IDs match (Last Write Wins)
-    var localSugMap = new Map(AppState.suggestions.map(s => [s.id, s]));
+    // Merge Strategy & Notification Detection
+    var localSugIds = new Set(AppState.suggestions.map(s => s.id));
+    var newAdditions = [];
+
+    // 1. Suggestions: Add missing ones
     (remoteData.suggestions || []).forEach(rs => {
-      if (!localSugMap.has(rs.id)) {
+      if (!localSugIds.has(rs.id)) {
         AppState.suggestions.push(rs);
-      } else {
-        // Conflict on specific ID: Local wins for the current session's push
-        // We could compare updatedAt, but local user intent is usually priority
+        newAdditions.push({
+          type: rs.status === 'approved' ? 'module' : 'suggestion',
+          title: rs.title,
+          by: rs.suggestedBy || 'Teammate',
+          at: rs.createdAt,
+          id: rs.id
+        });
       }
     });
 
@@ -178,8 +184,15 @@ export async function ghPullAndMerge(quiet = false) {
       if (!localHistMap.has(rh.id)) AppState.history.push(rh);
     });
 
-    // 4. Docs: Overwrite (usually static reference)
+    // 4. Docs: Overwrite
     if (remoteData.docs) AppState.docs = remoteData.docs;
+
+    // Add to notifications
+    if (newAdditions.length) {
+      if (!AppState.notifications) AppState.notifications = [];
+      AppState.notifications.push(...newAdditions);
+      updateNotifBadge();
+    }
 
     saveData();
     GH.headSha = remoteSha;

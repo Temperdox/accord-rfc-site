@@ -4,7 +4,8 @@ export var AppState = {
   tags: [],
   suggestions: [],
   history: [],
-  docs: []
+  docs: [],
+  notifications: []
 };
 
 export var UI = {

@@ -66,6 +66,10 @@
     Suggestion Manager <span id="topbar-team"></span>
   </div>
   <button class="topbar-btn" onclick="openSettings()"><i class="fa-solid fa-gear"></i></button>
+  <button id="notif-btn" class="topbar-btn" onclick="openNotifications()" style="position:relative;">
+    <i class="fa-solid fa-bell"></i>
+    <span id="notif-badge" class="notif-badge"></span>
+  </button>
   <label class="toggle-theme" title="Toggle theme">
     <span style="font-size:13px;"><i class="fa-solid fa-moon"></i></span>
     <label class="toggle-switch">
@@ -136,12 +140,35 @@
 
   <!-- Docs Page -->
   <div class="page" id="page-docs">
+    <div class="page-filter-bar">
+      <input class="filter-search" id="search-docs" type="text" placeholder="Search documentation…">
+    </div>
     <div id="docs-content"></div>
   </div>
 </div>
 
 <!-- TOAST NOTIFICATION -->
 <div class="notif-toast" id="toast"></div>
+
+<!-- ═══ MODAL: Notifications ═══ -->
+<div class="modal-overlay" id="modal-notifications">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Recent Additions</div>
+        <div class="modal-subtitle">Items added since your last visit</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-notifications')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="notif-list" style="padding:0;">
+      <!-- Notifications rendered here -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="clearNotifications()">Clear All</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-notifications')">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- MOBILE OVERLAY -->
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>

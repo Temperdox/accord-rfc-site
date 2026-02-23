@@ -172,6 +172,55 @@ export function openDataModal() {
   showModal('modal-data');
 }
 
+export function openNotifications() {
+  renderNotifications();
+  showModal('modal-notifications');
+  // Mark all as read conceptually by hiding badge
+  var badge = document.getElementById('notif-badge');
+  if (badge) badge.classList.remove('show');
+}
+
+export function renderNotifications() {
+  var list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!AppState.notifications || !AppState.notifications.length) {
+    list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);"><i class="fa-solid fa-bell-slash" style="font-size:32px;margin-bottom:12px;display:block;"></i>No new notifications</div>';
+    return;
+  }
+  
+  list.innerHTML = AppState.notifications.slice().reverse().map(n => {
+    var icon = n.type === 'suggestion' ? '<i class="fa-solid fa-lightbulb"></i>' : '<i class="fa-solid fa-circle-check"></i>';
+    return `
+      <div class="notif-item">
+        <div class="notif-item-icon">${icon}</div>
+        <div class="notif-item-content">
+          <div class="notif-item-title">${escHtml(n.title)}</div>
+          <div class="notif-item-meta">${escHtml(n.by)} · ${fmtDate(n.at)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+export function clearNotifications() {
+  AppState.notifications = [];
+  saveData();
+  renderNotifications();
+  updateNotifBadge();
+}
+
+export function updateNotifBadge() {
+  var badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  var count = (AppState.notifications || []).length;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
 export function toggleSidebar() {
   var sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.classList.toggle('open');
