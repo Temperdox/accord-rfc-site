@@ -147,7 +147,15 @@ export function renderMermaidInContainer(container) {
           var el = entry.target;
           if (el.classList.contains('pending-render')) {
             el.classList.remove('pending-render');
-            mermaid.run({ nodes: [el] });
+            // Schedule rendering for a moment when the browser is idle
+            const renderTask = () => {
+              mermaid.run({ nodes: [el] });
+            };
+            if (window.requestIdleCallback) {
+              window.requestIdleCallback(renderTask, { timeout: 2000 });
+            } else {
+              setTimeout(renderTask, 1);
+            }
             mermaidObserver.unobserve(el);
           }
         }

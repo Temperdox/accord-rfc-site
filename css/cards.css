@@ -9,6 +9,10 @@
   margin-bottom: 20px;
   transition: border-color 0.2s, box-shadow 0.2s;
   position: relative;
+  /* Performance Optimizations */
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 200px; /* Placeholder size for virtual scroller */
 }
 .suggestion-card:hover {
   border-color: rgba(34,211,168,0.3);
