@@ -138,6 +138,7 @@
   font-weight: 700;
 }
 .topbar-btn.create-btn:hover { opacity: 0.88; }
+.create-text { display: inline-block; }
 
 .footer-btn {
   flex: 1;
