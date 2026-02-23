@@ -186,14 +186,19 @@
   border: 1px solid var(--border);
   border-radius: 7px;
   overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
+.dm-log.busy { border-color: var(--warn); box-shadow: 0 0 8px var(--warn-glow); }
+.dm-log.ok   { border-color: var(--success); box-shadow: 0 0 8px rgba(52,208,112,0.1); }
+.dm-log.err  { border-color: var(--danger); box-shadow: 0 0 8px var(--danger-glow); }
+
 .dm-log-inner {
-  padding: 10px 13px;
-  max-height: 130px;
+  padding: 12px 15px;
+  height: 200px; /* Taller console output */
   overflow-y: auto;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  line-height: 1.7;
+  line-height: 1.6;
   color: var(--text-muted);
 }
 .dm-log-line { display: block; }

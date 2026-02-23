@@ -71,22 +71,40 @@ export function dmSetBusy(busy) {
   var dot = document.getElementById('dm-sync-dot');
   var pushBtn = document.getElementById('gh-push-btn');
   var pullBtn = document.getElementById('gh-pull-btn');
+  var logBox = document.getElementById('dm-log');
+  
   if (busy) {
     if (dot) dot.className = 'dm-sync-dot busy';
     if (pushBtn) { pushBtn.disabled = true; }
     if (pullBtn) { pullBtn.disabled = true; }
+    if (logBox) {
+      logBox.classList.remove('ok', 'err');
+      logBox.classList.add('busy');
+    }
   } else {
     dmUpdateSyncStatus();
     if (pushBtn) { pushBtn.disabled = false; pushBtn.innerHTML = '<i class="fa-solid fa-upload"></i> Push'; }
     if (pullBtn) { pullBtn.disabled = false; pullBtn.innerHTML = '<i class="fa-solid fa-download"></i> Pull'; }
+    if (logBox) logBox.classList.remove('busy');
   }
+}
+
+export function dmSetStatus(status) {
+  var logBox = document.getElementById('dm-log');
+  if (!logBox) return;
+  logBox.classList.remove('busy', 'ok', 'err');
+  if (status === 'ok') logBox.classList.add('ok');
+  if (status === 'err') logBox.classList.add('err');
 }
 
 export function dmClearLog() {
   var log = document.getElementById('dm-log');
   var inner = document.getElementById('dm-log-inner');
   if (inner) inner.innerHTML = '';
-  if (log) log.style.display = 'none';
+  if (log) {
+    log.style.display = 'none';
+    log.classList.remove('busy', 'ok', 'err');
+  }
 }
 
 export function dmLog(msg, cls) {
@@ -95,7 +113,7 @@ export function dmLog(msg, cls) {
   if (log) log.style.display = 'block';
   var span = document.createElement('span');
   span.className = 'dm-log-line ' + (cls||'');
-  span.textContent = msg;
+  span.textContent = '> ' + msg;
   if (inner) {
     inner.appendChild(span);
     inner.scrollTop = inner.scrollHeight;
@@ -132,33 +150,35 @@ export async function ghCreateBlob(content, encoding) {
 }
 
 // ─── PULL & MERGE ───────────────────────────
-// Fetches remote data and merges it into local AppState without overwriting local intent
 export async function ghPullAndMerge(quiet = false) {
   if (!GH.pat || !GH.repo) return;
   if (!quiet) dmSetBusy(true);
   
   try {
+    dmLog('Checking for remote updates...', 'info');
     var basePath = GH.path ? GH.path + '/' : '';
     var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
     var remoteSha = refData.object.sha;
     
     if (remoteSha === GH.headSha) {
+      dmLog('Local data is already up to date.', 'ok');
       if (!quiet) showToast('Data is already up to date.', 'info');
+      dmSetStatus('ok');
       return remoteSha;
     }
 
-    if (!quiet) dmLog('Remote changes detected. Merging...');
+    dmLog('Remote changes detected. Pulling accord-data.json...', 'warn');
+    if (!quiet) showToast('New data found. Syncing...', 'info');
     
     var jsonPath = basePath + 'accord-data.json';
     var fileData = await ghAPI('GET', '/repos/'+GH.repo+'/contents/'+encodeURIComponent(jsonPath)+'?ref='+encodeURIComponent(GH.branch));
     var jsonText = decodeBase64Unicode(fileData.content.replace(/\n/g,''));
     var remoteData = JSON.parse(jsonText);
 
-    // Merge Strategy & Notification Detection
+    dmLog('Merging remote suggestions...', 'info');
     var localSugIds = new Set(AppState.suggestions.map(s => s.id));
     var newAdditions = [];
 
-    // 1. Suggestions: Add missing ones
     (remoteData.suggestions || []).forEach(rs => {
       if (!localSugIds.has(rs.id)) {
         AppState.suggestions.push(rs);
@@ -172,23 +192,21 @@ export async function ghPullAndMerge(quiet = false) {
       }
     });
 
-    // 2. Categories: Union by ID
+    dmLog('Updating categories and history...', 'info');
     var localCatMap = new Map(AppState.categories.map(c => [c.id, c]));
     (remoteData.categories || []).forEach(rc => {
       if (!localCatMap.has(rc.id)) AppState.categories.push(rc);
     });
 
-    // 3. History: Union by ID
     var localHistMap = new Set(AppState.history.map(h => h.id));
     (remoteData.history || []).forEach(rh => {
       if (!localHistMap.has(rh.id)) AppState.history.push(rh);
     });
 
-    // 4. Docs: Overwrite
     if (remoteData.docs) AppState.docs = remoteData.docs;
 
-    // Add to notifications
     if (newAdditions.length) {
+      dmLog(`Successfully merged ${newAdditions.length} new item(s).`, 'ok');
       if (!AppState.notifications) AppState.notifications = [];
       AppState.notifications.push(...newAdditions);
       updateNotifBadge();
@@ -202,11 +220,15 @@ export async function ghPullAndMerge(quiet = false) {
     renderPage();
     renderCatNav();
     
-    if (!quiet) showToast('Merged remote changes ✓', 'success');
+    dmLog('Pull complete.', 'ok');
+    dmSetStatus('ok');
+    showToast(`Pulled ${newAdditions.length} new item(s) ✓`, 'success');
     return remoteSha;
 
   } catch(e) {
-    if (!quiet) showToast('Merge failed: ' + e.message, 'error');
+    dmLog('Pull failed: ' + e.message, 'err');
+    dmSetStatus('err');
+    showToast('Sync failed: ' + e.message, 'error');
     console.error('Merge error', e);
     throw e;
   } finally {
@@ -228,20 +250,22 @@ export async function ghPush(auto = false) {
   if (!auto) {
     dmSetBusy(true);
     dmClearLog();
+  } else {
+    dmLog('Auto-save triggered...', 'info');
+    showToast('Saving changes...', 'info');
   }
 
   try {
-    // ALWAYS pull and merge before pushing to ensure we are based on latest
+    dmLog('Verifying remote state...', 'info');
     var latestCommitSha = await ghPullAndMerge(true); 
     
-    // If pullAndMerge didn't return a SHA (e.g. not configured), get it manually
     if (!latestCommitSha) {
       var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
       latestCommitSha = refData.object.sha;
     }
 
     var basePath = GH.path ? GH.path + '/' : '';
-    if (!auto) dmLog('Preparing data for upload...');
+    dmLog('Serializing application state...', 'info');
     
     var exportState = JSON.parse(JSON.stringify(AppState));
     var treeItems = [];
@@ -259,7 +283,7 @@ export async function ghPush(auto = false) {
             var ext = match[1].split('/')[1] || 'bin';
             var fname = s.id + '_' + ai + '_' + sanitizeFilename(a.name || ('file.'+ext));
             var attPath = basePath + 'attachments/' + fname;
-            if (!auto) dmLog('  Uploading: ' + fname);
+            dmLog(`Uploading attachment ${attCount}/${totalAtt}: ${fname}`);
             var blobSha = await ghCreateBlob(match[2], 'base64');
             treeItems.push({ path: attPath, mode: '100644', type: 'blob', sha: blobSha });
             a.data = 'attachments/' + fname;
@@ -268,6 +292,7 @@ export async function ghPush(auto = false) {
       }
     }
 
+    dmLog('Creating data blob...', 'info');
     var jsonContent = JSON.stringify(exportState, null, 2);
     var jsonBlobSha = await ghCreateBlob(jsonContent, 'utf-8');
     treeItems.push({ path: basePath + 'accord-data.json', mode: '100644', type: 'blob', sha: jsonBlobSha });
@@ -275,6 +300,7 @@ export async function ghPush(auto = false) {
     var commitData = await ghAPI('GET', '/repos/'+GH.repo+'/git/commits/'+latestCommitSha);
     var baseTreeSha = commitData.tree.sha;
 
+    dmLog('Generating new Git tree...', 'info');
     var newTree = await ghAPI('POST', '/repos/'+GH.repo+'/git/trees', {
       base_tree: baseTreeSha,
       tree: treeItems
@@ -283,12 +309,14 @@ export async function ghPush(auto = false) {
     var now = new Date();
     var msg = (auto ? 'Auto-save' : 'Manual sync') + ' — ' + now.toISOString().replace('T',' ').slice(0,19) + ' UTC';
     
+    dmLog('Creating new commit...', 'info');
     var newCommit = await ghAPI('POST', '/repos/'+GH.repo+'/git/commits', {
       message: msg,
       tree: newTree.sha,
       parents: [latestCommitSha]
     });
 
+    dmLog('Updating branch pointer...', 'info');
     await ghAPI('PATCH', '/repos/'+GH.repo+'/git/refs/heads/'+GH.branch, {
       sha: newCommit.sha
     });
@@ -298,11 +326,14 @@ export async function ghPush(auto = false) {
     GH.headSha     = newCommit.sha; 
     ghSaveConfigLocal();
     
-    if (!auto) showToast('Sync complete ✓', 'success');
-    else showToast('Changes saved to cloud ✓', 'success');
+    dmLog('Push successful!', 'ok');
+    dmSetStatus('ok');
+    showToast('Changes saved to cloud ✓', 'success');
 
   } catch(e) {
-    showToast('Sync failed: ' + e.message, 'error');
+    dmLog('Push failed: ' + e.message, 'err');
+    dmSetStatus('err');
+    showToast('Cloud save failed: ' + e.message, 'error');
     console.error(e);
   } finally {
     if (!auto) dmSetBusy(false);
@@ -311,6 +342,7 @@ export async function ghPush(auto = false) {
 
 // ─── FULL PULL (Manual) ────────────────────
 export async function ghPull() {
+  dmClearLog();
   await ghPullAndMerge(false);
 }
 
@@ -320,7 +352,7 @@ export async function ghCheckForUpdates() {
   try {
     var refData = await ghAPI('GET', '/repos/'+GH.repo+'/git/ref/heads/'+GH.branch);
     if (refData.object.sha !== GH.headSha) {
-      showToast('Teammate made changes. Merging...', 'info');
+      dmLog('Background update detected...', 'warn');
       await ghPullAndMerge(true);
     }
   } catch(e) { console.warn('Watchdog failed', e); }
