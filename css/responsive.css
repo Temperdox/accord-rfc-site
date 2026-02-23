@@ -1,0 +1,63 @@
+/* ═══════════════════════════════════════════
+   MOBILE OVERRIDES (max-width: 768px)
+═══════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Sidebar Toggle */
+  #sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #sidebar.open ~ #sidebar-overlay { opacity: 1; pointer-events: all; }
+
+  /* Topbar Layout */
+  #topbar { 
+    left: 0; 
+    padding: 0 12px; 
+    justify-content: space-between;
+  }
+  
+  #topbar-title { 
+    font-size: 13px; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
+  #topbar-title span { display: none; }
+
+  /* Menu Toggle */
+  #menu-toggle { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    margin-right: 4px;
+  }
+
+  /* Compact Create Button */
+  .create-text { display: none !important; }
+  .topbar-btn.create-btn { 
+    width: 34px !important; 
+    height: 34px !important; 
+    min-width: 34px;
+    padding: 0 !important; 
+    display: flex !important; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 50% !important;
+    background: var(--accent2) !important;
+  }
+  .topbar-btn.create-btn i { margin: 0 !important; font-size: 14px; }
+
+  /* Content Area */
+  body { overflow-y: auto; }
+  #main { margin-left: 0; padding-top: 50px; height: auto; overflow-y: visible; }
+  .page { padding: 16px 16px 80px; }
+  .page-header h1 { font-size: 1.4em; }
+
+  /* Modal Adjustments */
+  .modal-lg { width: 100%; }
+  .modal { border-radius: 0; max-height: 100vh; height: 100vh; }
+  .modal-overlay { padding: 0; }
+}

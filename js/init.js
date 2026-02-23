@@ -6,6 +6,7 @@ import '../css/cards.css';
 import '../css/modals.css';
 import '../css/editor.css';
 import '../css/docs.css';
+import '../css/responsive.css';
 
 import { AppState, UI } from './state.js';
 import { loadData } from './storage.js';
