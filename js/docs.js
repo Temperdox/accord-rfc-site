@@ -19,14 +19,11 @@ export function renderDocs() {
   var sections = JSON.parse(JSON.stringify(AppState.docs));
   
   // 2. Inject Approved Suggestions
-  // They should go before Appendix A (id starts with 'appendix_a' or similar)
   var approved = AppState.suggestions.filter(s => s.status === 'approved');
   if (approved.length) {
-    // Find index of Appendix A
     var appendixIdx = sections.findIndex(s => s.title.toLowerCase().includes('appendix a'));
     if (appendixIdx === -1) appendixIdx = sections.length;
 
-    // Group approved suggestions by their category
     var grouped = {};
     approved.forEach(s => {
       var catId = s.categoryId || 'uncategorized';
@@ -72,7 +69,7 @@ export function renderDocs() {
     var isSub = s.level >= 3;
     var label = s.title.replace(/\s+/g, ' ').trim();
     if (label.length > 36) label = label.slice(0, 34) + '…';
-    return '<a class="docs-nav-item' + (isSub ? ' sub' : '') + '" href="#" onclick="scrollToDocSection(\'' + s.id + '\');return false;" data-doc-id="' + s.id + '">' + escHtml(label) + '</a>';
+    return `<a class="docs-nav-item${isSub ? ' sub' : ''}" href="#" onclick="scrollToDocSection('${s.id}');return false;" data-doc-id="${s.id}">${escHtml(label)}</a>`;
   }).join('');
   navList.innerHTML = navHtml;
 
@@ -90,38 +87,73 @@ export function renderDocs() {
 }
 
 var docsObserver = null;
+var intersectingSections = new Set();
+
 function setupDocsObserver() {
   if (docsObserver) docsObserver.disconnect();
+  intersectingSections.clear();
 
   docsObserver = new IntersectionObserver((entries) => {
-    // Find the entry that is most prominent on screen
-    var visible = entries.filter(e => e.isIntersecting);
-    if (!visible.length) return;
-
-    // Use the first one that started intersecting
-    var activeId = visible[0].target.id.replace('doc-sec-', '');
-    
-    document.querySelectorAll('#docs-nav-list .docs-nav-item').forEach(item => {
-      item.classList.toggle('active', item.getAttribute('data-doc-id') === activeId);
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        intersectingSections.add(entry.target.id);
+      } else {
+        intersectingSections.delete(entry.target.id);
+      }
     });
+
+    // Determine the active section
+    updateActiveNavItem();
   }, {
     root: document.getElementById('main'),
-    threshold: [0, 0.1, 0.5],
-    rootMargin: '-80px 0px -50% 0px'
+    threshold: [0, 0.1],
+    rootMargin: '-5% 0px -70% 0px' // Target the top quarter of the screen
   });
 
   document.querySelectorAll('.docs-section').forEach(sec => docsObserver.observe(sec));
+}
+
+function updateActiveNavItem() {
+  var sections = Array.from(intersectingSections);
+  if (!sections.length) return;
+
+  // If multiple are intersecting, the one with the smallest (most top) bounding box wins
+  var activeId = sections.reduce((closest, current) => {
+    var closestEl = document.getElementById(closest);
+    var currentEl = document.getElementById(current);
+    if (!closestEl || !currentEl) return closest;
+    
+    return currentEl.getBoundingClientRect().top < closestEl.getBoundingClientRect().top 
+      ? current 
+      : closest;
+  });
+
+  var docId = activeId.replace('doc-sec-', '');
+  document.querySelectorAll('#docs-nav-list .docs-nav-list .docs-nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  var targetNav = document.querySelector(`#docs-nav-list [data-doc-id="${docId}"]`);
+  if (targetNav) {
+    // Only update if it's actually different to prevent flicker
+    if (!targetNav.classList.contains('active')) {
+      document.querySelectorAll('#docs-nav-list .docs-nav-item').forEach(el => el.classList.remove('active'));
+      targetNav.classList.add('active');
+    }
+  }
 }
 
 export function scrollToDocSection(id) {
   var el = document.getElementById('doc-sec-' + id);
   if (el) {
     var mainEl = document.getElementById('main');
-    mainEl.scrollTo({ top: el.offsetTop - 60, behavior: 'smooth' });
+    // Use a fixed offset to account for the topbar
+    var offset = 70;
+    var targetScroll = el.offsetTop - offset;
+    mainEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
   }
 }
 
-// Keep the old one but it's now handled by the observer mostly
 export function updateDocsActiveNav() {
-  // Observer handles this more accurately now with content-visibility
+  // Now handled by setupDocsObserver/updateActiveNavItem logic
 }
