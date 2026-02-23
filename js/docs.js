@@ -5,18 +5,22 @@ import { renderMermaidInContainer, parseMarkdown } from './render.js';
 export function renderDocs() {
   var container = document.getElementById('docs-content');
   var navList = document.getElementById('docs-nav-list');
+  var searchWrap = document.querySelector('#page-docs .page-filter-bar');
+  
   if (!AppState.docs || !AppState.docs.length) {
-    container.innerHTML = '<div class="docs-empty-state">' +
-      '<div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div>' +
-      '<h3>No documentation loaded</h3>' +
-      '<p>Import a JSON file containing a <code>docs</code> array to view the technical design document here.</p>' +
-      '</div>';
-    navList.innerHTML = '';
+    if (container) {
+      container.innerHTML = '<div class="docs-empty-state">' +
+        '<div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div>' +
+        '<h3>No documentation loaded</h3>' +
+        '<p>Import a JSON file containing a <code>docs</code> array to view the technical design document here.</p>' +
+        '</div>';
+    }
+    if (navList) navList.innerHTML = '';
     return;
   }
 
-  var search = (document.getElementById('search-docs') || {}).value || '';
-  search = search.toLowerCase();
+  var searchVal = (document.getElementById('search-docs') || {}).value || '';
+  var search = searchVal.toLowerCase();
 
   // 1. Prepare Doc Sections
   var sections = JSON.parse(JSON.stringify(AppState.docs));
@@ -68,36 +72,45 @@ export function renderDocs() {
   }
 
   // 3. Filter by Search
+  var filteredSections = sections;
   if (search) {
-    sections = sections.filter(s => {
+    filteredSections = sections.filter(s => {
       var haystack = (s.title + ' ' + s.contentHtml).toLowerCase();
       return haystack.indexOf(search) !== -1;
     });
   }
 
-  if (sections.length === 0 && search) {
-    container.innerHTML = '<div class="docs-empty-state"><h3>No matches found</h3><p>Try a different search term.</p></div>';
-    navList.innerHTML = '';
-    return;
-  }
-
-  // 4. Build Nav
-  var navHtml = sections.map(function(s) {
+  // 4. Build Nav (Always use full or filtered list for nav)
+  var navHtml = filteredSections.map(function(s) {
     var isSub = s.level >= 3;
     var label = s.title.replace(/\s+/g, ' ').trim();
     if (label.length > 36) label = label.slice(0, 34) + '…';
     return `<a class="docs-nav-item${isSub ? ' sub' : ''}" href="#" onclick="scrollToDocSection('${s.id}');return false;" data-doc-id="${s.id}">${escHtml(label)}</a>`;
   }).join('');
-  navList.innerHTML = navHtml;
+  if (navList) navList.innerHTML = navHtml;
 
-  // 5. Build Content
-  var contentHtml = sections.map(function(s) {
-    return '<div class="docs-section" id="doc-sec-' + s.id + '">' +
-      '<a class="docs-section-anchor" id="' + s.id + '"></a>' +
-      s.contentHtml +
-      '</div>';
-  }).join('\n');
-  container.innerHTML = contentHtml;
+  // 5. Build Content with Search Bar Injection
+  if (container) {
+    container.innerHTML = '';
+    
+    if (filteredSections.length === 0 && search) {
+      if (searchWrap) container.appendChild(searchWrap);
+      container.innerHTML += '<div class="docs-empty-state"><h3>No matches found</h3><p>Try a different search term.</p></div>';
+    } else {
+      filteredSections.forEach((s, idx) => {
+        var secEl = document.createElement('div');
+        secEl.className = 'docs-section';
+        secEl.id = 'doc-sec-' + s.id;
+        secEl.innerHTML = `<a class="docs-section-anchor" id="${s.id}"></a>${s.contentHtml}`;
+        container.appendChild(secEl);
+        
+        // Inject Search Bar after the first section (the title)
+        if (idx === 0 && searchWrap) {
+          container.appendChild(searchWrap);
+        }
+      });
+    }
+  }
 
   // 6. Setup Intersection Observer for Scroll-Spy
   setupDocsObserver();
@@ -144,9 +157,12 @@ function updateActiveNavItem() {
   });
 
   var docId = activeId.replace('doc-sec-', '');
-  document.querySelectorAll('#docs-nav-list .docs-nav-item').forEach(item => {
-    item.classList.toggle('active', item.getAttribute('data-doc-id') === docId);
-  });
+  var targetNav = document.querySelector(`#docs-nav-list [data-doc-id="${docId}"]`);
+  
+  if (targetNav && !targetNav.classList.contains('active')) {
+    document.querySelectorAll('#docs-nav-list .docs-nav-item').forEach(el => el.classList.remove('active'));
+    targetNav.classList.add('active');
+  }
 }
 
 export function scrollToDocSection(id) {
