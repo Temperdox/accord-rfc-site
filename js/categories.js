@@ -162,6 +162,7 @@ export function filterCategory(catId, btn) {
   renderPage();
   var sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.classList.remove('open');
+  window.scrollTo(0, 0);
 }
 
 export function updateCounts() {

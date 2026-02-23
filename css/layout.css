@@ -286,7 +286,8 @@ body {
   #topbar { left: 0; padding: 0 16px; }
   #menu-toggle { display: flex; align-items: center; justify-content: center; }
   
-  #main { margin-left: 0; padding-top: 50px; }
+  body { overflow-y: auto; }
+  #main { margin-left: 0; padding-top: 50px; height: auto; overflow-y: visible; }
   .page { padding: 20px 20px 80px; }
   
   #topbar-title { font-size: 14px; }

@@ -30,6 +30,7 @@ window.setView = (view, btn) => {
   else renderPage();
   var sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.classList.remove('open');
+  window.scrollTo(0, 0);
 };
 
 window.filterCategory = filterCategory;
@@ -64,6 +65,7 @@ window.switchPageTab = (tab) => {
   }
   var sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.classList.remove('open');
+  window.scrollTo(0, 0);
 };
 
 window.openDataModal = openDataModal;
