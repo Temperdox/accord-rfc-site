@@ -44,7 +44,7 @@ window.switchMainTab = (tab) => {
   document.getElementById('tab-home').classList.toggle('active', tab === 'home');
   document.getElementById('tab-download').classList.toggle('active', tab === 'download');
   
-  document.getElementById('sidebar-top-nav').classList.toggle('hidden', tab !== 'home');
+  document.getElementById('sidebar-sub-nav').classList.toggle('hidden', tab !== 'home');
   document.getElementById('download-nav-container').classList.toggle('hidden', tab === 'home');
   
   if (tab === 'home') {

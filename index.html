@@ -15,16 +15,6 @@
 
 <!-- SIDEBAR -->
 <nav id="sidebar">
-  <!-- Top level page switcher (Docs / Suggestions) -->
-  <div id="sidebar-top-nav">
-    <button class="top-nav-btn active" id="sub-tab-suggestions" onclick="switchPageTab('suggestions')">
-      <i class="fa-solid fa-lightbulb"></i> Suggestions
-    </button>
-    <button class="top-nav-btn" id="sub-tab-docs" onclick="switchPageTab('docs')">
-      <i class="fa-solid fa-book"></i> Docs
-    </button>
-  </div>
-
   <div id="sidebar-header">
     <div id="sidebar-logo">
       <button id="sidebar-menu-toggle" class="sidebar-icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
@@ -39,6 +29,16 @@
       </button>
       <button class="main-tab" id="tab-download" onclick="switchMainTab('download')">
         <i class="fa-solid fa-download"></i> Download
+      </button>
+    </div>
+
+    <!-- Sub Navigation (Docs / Suggestions) - Only shown for Home -->
+    <div id="sidebar-sub-nav">
+      <button class="sub-nav-btn active" id="sub-tab-suggestions" onclick="switchPageTab('suggestions')">
+        <i class="fa-solid fa-lightbulb"></i> Suggestions
+      </button>
+      <button class="sub-nav-btn" id="sub-tab-docs" onclick="switchPageTab('docs')">
+        <i class="fa-solid fa-book"></i> Docs
       </button>
     </div>
   </div>

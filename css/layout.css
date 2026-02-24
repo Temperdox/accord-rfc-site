@@ -150,14 +150,13 @@ body {
 .sidebar-btn.view-history .btn-count,
 .sidebar-btn.view-history.active .btn-count  { background: rgba(61,122,237,0.12); color: var(--accent); }
 
-/* Top Navigation (Docs / Suggestions) */
-#sidebar-top-nav {
+/* Sub Navigation (Docs / Suggestions) */
+#sidebar-sub-nav {
   display: flex;
-  padding: 12px 18px 0;
+  padding: 16px 4px 0;
   gap: 20px;
-  border-bottom: 1px solid var(--border);
 }
-.top-nav-btn {
+.sub-nav-btn {
   background: none;
   border: none;
   padding: 8px 0;
@@ -174,9 +173,9 @@ body {
   align-items: center;
   gap: 8px;
 }
-.top-nav-btn i { font-size: 10px; opacity: 0.7; }
-.top-nav-btn:hover { color: var(--text); }
-.top-nav-btn.active {
+.sub-nav-btn i { font-size: 10px; opacity: 0.7; }
+.sub-nav-btn:hover { color: var(--text); }
+.sub-nav-btn.active {
   color: var(--accent2);
   border-bottom-color: var(--accent2);
 }
