@@ -15,6 +15,16 @@
 
 <!-- SIDEBAR -->
 <nav id="sidebar">
+  <!-- Top level page switcher (Docs / Suggestions) -->
+  <div id="sidebar-top-nav">
+    <button class="top-nav-btn active" id="sub-tab-suggestions" onclick="switchPageTab('suggestions')">
+      <i class="fa-solid fa-lightbulb"></i> Suggestions
+    </button>
+    <button class="top-nav-btn" id="sub-tab-docs" onclick="switchPageTab('docs')">
+      <i class="fa-solid fa-book"></i> Docs
+    </button>
+  </div>
+
   <div id="sidebar-header">
     <div id="sidebar-logo">
       <button id="sidebar-menu-toggle" class="sidebar-icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
@@ -34,42 +44,36 @@
   </div>
 
   <div id="sidebar-nav">
-    <!-- Home Navigation -->
-    <div id="home-nav-container">
-      <div id="sub-tabs">
-        <button class="sub-tab" id="sub-tab-docs" onclick="switchPageTab('docs')">Docs</button>
-        <button class="sub-tab active" id="sub-tab-suggestions" onclick="switchPageTab('suggestions')">Suggestions</button>
-      </div>
+    <!-- Suggestions Navigation -->
+    <div id="suggestions-sidebar-nav">
+      <div class="sidebar-section-label">Views</div>
+      <button class="sidebar-btn view-pending active" onclick="setView('pending', this)">
+        Pending <span class="btn-count" id="count-pending">0</span>
+      </button>
+      <button class="sidebar-btn view-approved" onclick="setView('approved', this)">
+        Approved <span class="btn-count" id="count-approved">0</span>
+      </button>
+      <button class="sidebar-btn view-rejected" onclick="setView('rejected', this)">
+        Rejected <span class="btn-count" id="count-rejected">0</span>
+      </button>
+      <button class="sidebar-btn view-archived" onclick="setView('archived', this)">
+        Archived <span class="btn-count" id="count-archived">0</span>
+      </button>
+      <button class="sidebar-btn view-history" onclick="setView('history', this)">
+        History <span class="btn-count" id="count-history">0</span>
+      </button>
+      <div class="sidebar-section-label" style="margin-top:8px;">Categories</div>
+      <button class="cat-nav-item active" onclick="filterCategory('all', this)" data-cat="all">
+        <span>All Categories</span>
+        <span class="cat-count" id="cat-count-all">0</span>
+      </button>
+      <div id="cat-nav-list"></div>
+    </div>
 
-      <div id="suggestions-sidebar-nav">
-        <div class="sidebar-section-label">Views</div>
-        <button class="sidebar-btn view-pending active" onclick="setView('pending', this)">
-          Pending <span class="btn-count" id="count-pending">0</span>
-        </button>
-        <button class="sidebar-btn view-approved" onclick="setView('approved', this)">
-          Approved <span class="btn-count" id="count-approved">0</span>
-        </button>
-        <button class="sidebar-btn view-rejected" onclick="setView('rejected', this)">
-          Rejected <span class="btn-count" id="count-rejected">0</span>
-        </button>
-        <button class="sidebar-btn view-archived" onclick="setView('archived', this)">
-          Archived <span class="btn-count" id="count-archived">0</span>
-        </button>
-        <button class="sidebar-btn view-history" onclick="setView('history', this)">
-          History <span class="btn-count" id="count-history">0</span>
-        </button>
-        <div class="sidebar-section-label" style="margin-top:8px;">Categories</div>
-        <button class="cat-nav-item active" onclick="filterCategory('all', this)" data-cat="all">
-          <span>All Categories</span>
-          <span class="cat-count" id="cat-count-all">0</span>
-        </button>
-        <div id="cat-nav-list"></div>
-      </div>
-
-      <div id="docs-sidebar-nav" class="hidden">
-        <div class="docs-section-label">Sections</div>
-        <div id="docs-nav-list"></div>
-      </div>
+    <!-- Docs Navigation -->
+    <div id="docs-sidebar-nav" class="hidden">
+      <div class="docs-section-label">Sections</div>
+      <div id="docs-nav-list"></div>
     </div>
 
     <!-- Download Navigation -->
@@ -82,7 +86,7 @@
         <i class="fa-solid fa-server" style="margin-right:10px;"></i> Environment
       </button>
       <button class="sidebar-btn" onclick="scrollToDownload('docker')">
-        <i class="fa-solid fa-container-storage" style="margin-right:10px;"></i> Docker Stack
+        <i class="fa-solid fa-layer-group" style="margin-right:10px;"></i> Docker Stack
       </button>
     </div>
   </div>

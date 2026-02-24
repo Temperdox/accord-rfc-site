@@ -1,4 +1,5 @@
 import { escHtml } from './ui.js';
+import { GH } from './state.js';
 
 export function renderDownloadPage() {
   const container = document.getElementById('download-content');
@@ -111,7 +112,13 @@ async function fetchReleases() {
   if (!releasesEl) return;
 
   try {
-    const response = await fetch('https://api.github.com/repos/accordgg/rfc/releases');
+    const repo = GH.repo || 'accordgg/rfc';
+    const headers = { 'Accept': 'application/vnd.github.v3+json' };
+    if (GH.pat) {
+      headers['Authorization'] = `token ${GH.pat}`;
+    }
+
+    const response = await fetch(`https://api.github.com/repos/${repo}/releases`, { headers });
     if (!response.ok) throw new Error('Failed to fetch releases');
     const releases = await response.json();
     
@@ -163,7 +170,7 @@ async function fetchReleases() {
       <div class="error-state">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <p>Could not load releases from GitHub.</p>
-        <a href="https://github.com/accordgg/rfc/releases" target="_blank" class="dl-link">View on GitHub</a>
+        <a href="https://github.com/${GH.repo || 'accordgg/rfc'}/releases" target="_blank" class="dl-link">View on GitHub</a>
       </div>
     `;
   }

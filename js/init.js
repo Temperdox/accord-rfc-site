@@ -44,7 +44,7 @@ window.switchMainTab = (tab) => {
   document.getElementById('tab-home').classList.toggle('active', tab === 'home');
   document.getElementById('tab-download').classList.toggle('active', tab === 'download');
   
-  document.getElementById('home-nav-container').classList.toggle('hidden', tab !== 'home');
+  document.getElementById('sidebar-top-nav').classList.toggle('hidden', tab !== 'home');
   document.getElementById('download-nav-container').classList.toggle('hidden', tab === 'home');
   
   if (tab === 'home') {
@@ -52,6 +52,8 @@ window.switchMainTab = (tab) => {
     window.switchPageTab('suggestions');
   } else {
     // Switch to download page
+    document.getElementById('suggestions-sidebar-nav').classList.add('hidden');
+    document.getElementById('docs-sidebar-nav').classList.add('hidden');
     document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
     document.getElementById('page-download').classList.add('active');
     renderDownloadPage();
