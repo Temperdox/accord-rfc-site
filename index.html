@@ -16,43 +16,77 @@
 <!-- SIDEBAR -->
 <nav id="sidebar">
   <div id="sidebar-header">
-    <div id="sidebar-logo"><span class="logo-dot"></span>Accord</div>
+    <div id="sidebar-logo">
+      <button id="sidebar-menu-toggle" class="sidebar-icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <span class="logo-dot"></span>Accord
+    </div>
     <div id="sidebar-subtitle">Suggestion Manager · v1.0</div>
-    <div id="page-tabs">
-      <button class="page-tab" id="tab-docs" onclick="switchPageTab('docs')">Docs</button>
-      <button class="page-tab active" id="tab-suggestions" onclick="switchPageTab('suggestions')">Suggestions</button>
+    
+    <!-- Main Tabs -->
+    <div id="main-tabs">
+      <button class="main-tab active" id="tab-home" onclick="switchMainTab('home')">
+        <i class="fa-solid fa-house"></i> Home
+      </button>
+      <button class="main-tab" id="tab-download" onclick="switchMainTab('download')">
+        <i class="fa-solid fa-download"></i> Download
+      </button>
     </div>
   </div>
-  <div id="sidebar-nav" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0;">
-    <div id="suggestions-sidebar-nav">
-      <div class="sidebar-section-label">Views</div>
-      <button class="sidebar-btn view-pending active" onclick="setView('pending', this)">
-        Pending <span class="btn-count" id="count-pending">0</span>
-      </button>
-      <button class="sidebar-btn view-approved" onclick="setView('approved', this)">
-        Approved <span class="btn-count" id="count-approved">0</span>
-      </button>
-      <button class="sidebar-btn view-rejected" onclick="setView('rejected', this)">
-        Rejected <span class="btn-count" id="count-rejected">0</span>
-      </button>
-      <button class="sidebar-btn view-archived" onclick="setView('archived', this)">
-        Archived <span class="btn-count" id="count-archived">0</span>
-      </button>
-      <button class="sidebar-btn view-history" onclick="setView('history', this)">
-        History <span class="btn-count" id="count-history">0</span>
-      </button>
-      <div class="sidebar-section-label" style="margin-top:8px;">Categories</div>
-      <button class="cat-nav-item active" onclick="filterCategory('all', this)" data-cat="all">
-        <span>All Categories</span>
-        <span class="cat-count" id="cat-count-all">0</span>
-      </button>
-      <div id="cat-nav-list"></div>
+
+  <div id="sidebar-nav">
+    <!-- Home Navigation -->
+    <div id="home-nav-container">
+      <div id="sub-tabs">
+        <button class="sub-tab" id="sub-tab-docs" onclick="switchPageTab('docs')">Docs</button>
+        <button class="sub-tab active" id="sub-tab-suggestions" onclick="switchPageTab('suggestions')">Suggestions</button>
+      </div>
+
+      <div id="suggestions-sidebar-nav">
+        <div class="sidebar-section-label">Views</div>
+        <button class="sidebar-btn view-pending active" onclick="setView('pending', this)">
+          Pending <span class="btn-count" id="count-pending">0</span>
+        </button>
+        <button class="sidebar-btn view-approved" onclick="setView('approved', this)">
+          Approved <span class="btn-count" id="count-approved">0</span>
+        </button>
+        <button class="sidebar-btn view-rejected" onclick="setView('rejected', this)">
+          Rejected <span class="btn-count" id="count-rejected">0</span>
+        </button>
+        <button class="sidebar-btn view-archived" onclick="setView('archived', this)">
+          Archived <span class="btn-count" id="count-archived">0</span>
+        </button>
+        <button class="sidebar-btn view-history" onclick="setView('history', this)">
+          History <span class="btn-count" id="count-history">0</span>
+        </button>
+        <div class="sidebar-section-label" style="margin-top:8px;">Categories</div>
+        <button class="cat-nav-item active" onclick="filterCategory('all', this)" data-cat="all">
+          <span>All Categories</span>
+          <span class="cat-count" id="cat-count-all">0</span>
+        </button>
+        <div id="cat-nav-list"></div>
+      </div>
+
+      <div id="docs-sidebar-nav" class="hidden">
+        <div class="docs-section-label">Sections</div>
+        <div id="docs-nav-list"></div>
+      </div>
     </div>
-    <div id="docs-sidebar-nav">
-      <div class="docs-section-label">Sections</div>
-      <div id="docs-nav-list"></div>
+
+    <!-- Download Navigation -->
+    <div id="download-nav-container" class="hidden">
+      <div class="sidebar-section-label">Resources</div>
+      <button class="sidebar-btn" onclick="scrollToDownload('installers')">
+        <i class="fa-solid fa-box-open" style="margin-right:10px;"></i> Installers
+      </button>
+      <button class="sidebar-btn" onclick="scrollToDownload('environment')">
+        <i class="fa-solid fa-server" style="margin-right:10px;"></i> Environment
+      </button>
+      <button class="sidebar-btn" onclick="scrollToDownload('docker')">
+        <i class="fa-solid fa-container-storage" style="margin-right:10px;"></i> Docker Stack
+      </button>
     </div>
   </div>
+
   <div id="sidebar-footer">
     <button class="footer-btn data-btn" onclick="openDataModal()">Data</button>
     <button class="footer-btn settings-btn" onclick="openSettings()">Settings</button>
@@ -185,6 +219,11 @@
       <input class="filter-search" id="search-docs" type="text" placeholder="Search documentation…">
     </div>
     <div id="docs-content"></div>
+  </div>
+
+  <!-- Download Page -->
+  <div class="page" id="page-download">
+    <div id="download-content"></div>
   </div>
 </div>
 

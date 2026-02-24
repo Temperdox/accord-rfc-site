@@ -131,6 +131,16 @@
   font-family: 'Inter', sans-serif;
 }
 .topbar-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+#menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+}
 .topbar-btn.create-btn {
   background: var(--accent2);
   border-color: var(--accent2);

@@ -32,7 +32,10 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 100;
-  transition: background 0.3s, border-color 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar-collapsed #sidebar {
+  transform: translateX(-256px);
 }
 #sidebar-header {
   padding: 18px 18px 14px;
@@ -47,9 +50,23 @@ body {
   letter-spacing: -0.5px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 3px;
 }
+.sidebar-icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex; /* always visible */
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+.sidebar-icon-btn:hover { color: var(--text); }
+
 #sidebar-logo .logo-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
@@ -133,11 +150,82 @@ body {
 .sidebar-btn.view-history .btn-count,
 .sidebar-btn.view-history.active .btn-count  { background: rgba(61,122,237,0.12); color: var(--accent); }
 
+/* Main Tabs (Home / Download) */
+#main-tabs {
+  display: flex;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 3px;
+  margin-top: 14px;
+}
+.main-tab {
+  flex: 1;
+  padding: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.main-tab i { font-size: 11px; opacity: 0.8; }
+.main-tab:hover { color: var(--text); }
+.main-tab.active {
+  background: var(--bg-panel);
+  color: var(--text-heading);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Sub Tabs (Docs / Suggestions) */
+#sub-tabs {
+  display: flex;
+  padding: 8px 18px 4px;
+  gap: 12px;
+}
+.sub-tab {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-family: 'JetBrains Mono', monospace;
+}
+.sub-tab:hover { color: var(--text); }
+.sub-tab.active {
+  color: var(--accent2);
+  border-bottom-color: var(--accent2);
+}
+
 #sidebar-nav {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 16px;
+  display: flex;
+  flex-direction: column;
 }
+
+#home-nav-container, #download-nav-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.hidden { display: none !important; }
+.visible { display: flex !important; }
+
 .cat-nav-item {
   display: flex;
   align-items: center;
@@ -180,7 +268,10 @@ body {
   padding: 0 24px;
   z-index: 90;
   gap: 12px;
-  transition: background 0.3s, border-color 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar-collapsed #topbar {
+  left: 0;
 }
 #topbar-title {
   font-family: 'Syne', sans-serif;
@@ -207,6 +298,10 @@ body {
   height: 100vh;
   overflow-y: auto;
   min-width: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar-collapsed #main {
+  margin-left: 0;
 }
 .page {
   display: none;

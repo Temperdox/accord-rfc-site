@@ -222,6 +222,11 @@ export function updateNotifBadge() {
 }
 
 export function toggleSidebar() {
-  var sidebar = document.getElementById('sidebar');
-  if (sidebar) sidebar.classList.toggle('open');
+  if (window.innerWidth <= 768) {
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.toggle('open');
+  } else {
+    document.body.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('accord-sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
+  }
 }

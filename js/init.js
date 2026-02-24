@@ -6,6 +6,7 @@ import '../css/cards.css';
 import '../css/modals.css';
 import '../css/editor.css';
 import '../css/docs.css';
+import '../css/download.css';
 import '../css/responsive.css';
 
 import { AppState, UI } from './state.js';
@@ -17,6 +18,7 @@ import { renderPage, renderHistory, renderMermaidInContainer } from './render.js
 import { renderInfoBoxes, tbInsert, togglePreview, triggerAttach, handleDropZoneFiles, confirmCodeInsert, openCodeInsert, saveSuggestion, removeAttachment } from './editor.js';
 import { confirmAction, executeConfirmAction } from './actions.js';
 import { renderDocs, scrollToDocSection, updateDocsActiveNav } from './docs.js';
+import { renderDownloadPage } from './download.js';
 import { exportZip, importZip, openPasteJson, loadPastedJson, pickSaveFolder } from './data.js';
 
 // Global attach functions to window for onclick handlers
@@ -34,17 +36,40 @@ window.setView = (view, btn) => {
   window.scrollTo(0, 0);
 };
 
+window.renderDownloadPage = renderDownloadPage;
+
 window.filterCategory = filterCategory;
+
+window.switchMainTab = (tab) => {
+  document.getElementById('tab-home').classList.toggle('active', tab === 'home');
+  document.getElementById('tab-download').classList.toggle('active', tab === 'download');
+  
+  document.getElementById('home-nav-container').classList.toggle('hidden', tab !== 'home');
+  document.getElementById('download-nav-container').classList.toggle('hidden', tab === 'home');
+  
+  if (tab === 'home') {
+    // Default to suggestions if home is selected
+    window.switchPageTab('suggestions');
+  } else {
+    // Switch to download page
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    document.getElementById('page-download').classList.add('active');
+    renderDownloadPage();
+  }
+};
+
 window.switchPageTab = (tab) => {
-  document.getElementById('tab-docs').classList.toggle('active', tab === 'docs');
-  document.getElementById('tab-suggestions').classList.toggle('active', tab === 'suggestions');
+  document.getElementById('sub-tab-docs').classList.toggle('active', tab === 'docs');
+  document.getElementById('sub-tab-suggestions').classList.toggle('active', tab === 'suggestions');
+  
   var sugNav = document.getElementById('suggestions-sidebar-nav');
   var docsNav = document.getElementById('docs-sidebar-nav');
   var mainEl = document.getElementById('main');
+  
   if (tab === 'docs') {
     sugNav.classList.add('hidden');
-    docsNav.classList.add('visible');
-    ['pending','approved','rejected','archived','history'].forEach(function(v) {
+    docsNav.classList.remove('hidden');
+    ['pending','approved','rejected','archived','history','download'].forEach(function(v) {
       var p = document.getElementById('page-' + v);
       if (p) p.classList.remove('active');
     });
@@ -59,8 +84,9 @@ window.switchPageTab = (tab) => {
     mainEl.addEventListener('scroll', window._throttledDocsNav, { passive: true });
   } else {
     sugNav.classList.remove('hidden');
-    docsNav.classList.remove('visible');
+    docsNav.classList.add('hidden');
     document.getElementById('page-docs').classList.remove('active');
+    document.getElementById('page-download').classList.remove('active');
     if (window._throttledDocsNav) {
       mainEl.removeEventListener('scroll', window._throttledDocsNav);
     }
@@ -69,10 +95,18 @@ window.switchPageTab = (tab) => {
       var p = document.getElementById('page-' + v);
       if (p) p.classList.toggle('active', v === activeView);
     });
+    renderCatNav();
+    if (activeView === 'history') renderHistory();
+    else renderPage();
   }
   var sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.classList.remove('open');
   window.scrollTo(0, 0);
+};
+
+window.scrollToDownload = (id) => {
+  var el = document.getElementById('dl-section-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
 };
 
 window.openDataModal = openDataModal;
@@ -139,13 +173,17 @@ function debounce(func, wait) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem('accord-sidebar-collapsed') === 'true' && window.innerWidth > 768) {
+    document.body.classList.add('sidebar-collapsed');
+  }
   loadData();
   ghLoadConfig();
   renderEmojiGrids();
   renderInfoBoxes();
   updateCounts();
-  renderPage();
-  renderCatNav();
+  
+  // Initialize with Home/Suggestions
+  window.switchMainTab('home');
   
   // Optimized Search Listeners
   const debouncedRender = debounce(renderPage, 250);
