@@ -148,8 +148,15 @@ async function fetchReleases() {
 
     // Show older releases if any
     if (releases.length > 1) {
-      html += '<div class="older-releases-hdr">Previous Versions</div>';
-      releases.slice(1, 4).forEach(rel => {
+      html += `
+        <div class="older-releases-hdr collapsible" onclick="toggleOlderReleases(this)">
+          <span>Previous Versions</span>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+        <div id="older-releases-content" class="older-releases-container">
+      `;
+      
+      releases.slice(1).forEach(rel => {
         html += `
           <div class="release-card">
             <div class="release-hdr">
@@ -162,6 +169,8 @@ async function fetchReleases() {
           </div>
         `;
       });
+      
+      html += '</div>';
     }
 
     releasesEl.innerHTML = html;
@@ -175,6 +184,19 @@ async function fetchReleases() {
     `;
   }
 }
+
+window.toggleOlderReleases = function(el) {
+  const content = document.getElementById('older-releases-content');
+  if (!content) return;
+  
+  const isOpen = content.classList.toggle('open');
+  el.classList.toggle('open', isOpen);
+  
+  const icon = el.querySelector('i');
+  if (icon) {
+    icon.className = isOpen ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right';
+  }
+};
 
 function renderAssets(assets) {
   if (!assets || assets.length === 0) return '<div class="no-assets">No files available</div>';

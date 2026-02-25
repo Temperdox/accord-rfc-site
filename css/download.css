@@ -134,6 +134,32 @@
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
 }
+.older-releases-hdr.collapsible {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+.older-releases-hdr.collapsible:hover {
+  color: var(--text-heading);
+  border-color: var(--accent2);
+}
+.older-releases-hdr.collapsible i {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.older-releases-container {
+  display: none;
+  margin-top: 20px;
+  flex-direction: column;
+  gap: 20px;
+}
+.older-releases-container.open {
+  display: flex;
+}
 
 /* VM Table */
 .vm-table-wrap {
