@@ -8,6 +8,7 @@ export function ghLoadConfig() {
   try {
     var raw = localStorage.getItem('accord-gh-config');
     if (raw) Object.assign(GH, JSON.parse(raw));
+    GH.isPrivate = true; // Always force true
   } catch(e) {}
 }
 
@@ -20,6 +21,7 @@ export function ghSaveConfig() {
   GH.repo   = document.getElementById('gh-repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '');
   GH.branch = document.getElementById('gh-branch').value.trim() || 'main';
   GH.path   = document.getElementById('gh-path').value.trim().replace(/^\/|\/$/g, '');
+  GH.isPrivate = true;
   ghSaveConfigLocal();
   document.getElementById('dm-gh-config').classList.remove('open');
   dmUpdateSyncStatus();
@@ -36,7 +38,7 @@ export async function ghTestConnection() {
   statusEl.style.display = 'none';
   try {
     var data = await ghAPI('GET', '/repos/'+GH.repo);
-    GH.isPrivate = data.private;
+    GH.isPrivate = true;
     ghSaveConfigLocal();
     statusEl.className = 'dm-gh-status ok';
     statusEl.textContent = '✓ Connected to '+data.full_name+' ('+data.default_branch+' default) · '+(data.private?'private':'public')+' repo';
@@ -445,19 +447,10 @@ export function getRawGhUrl(path) {
   if (path.startsWith('data:')) return path;
   if (path.startsWith('http')) return path;
   
-  if (GH.isPrivate) return path; // Let the hydrator handle private paths
-
-  // Construct raw.githubusercontent.com URL
-  // Format: https://raw.githubusercontent.com/{owner}/{repo}/refs/heads/{branch}/{path}
-  var repo = GH.repo;
-  var branch = GH.branch || 'main';
-  var fullPath = (GH.path ? GH.path + '/' : '') + path;
-  var url = `https://raw.githubusercontent.com/${repo}/refs/heads/${branch}/${fullPath.replace(/^\//, '')}`;
-  
-  if (GH.pat) {
-    url += (url.indexOf('?') === -1 ? '?' : '&') + 'token=' + GH.pat;
-  }
-  return url;
+  // ALWAYS return the path to trigger hydration via API
+  // This is required because raw.githubusercontent.com 
+  // doesn't accept Personal Access Tokens in standard HTML tags.
+  return path;
 }
 
 export async function ghFetchFileContent(path) {

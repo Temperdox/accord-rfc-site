@@ -29,5 +29,5 @@ export var GH = {
   headSha: null, // Tracks the commit we are currently based on
   syncTimeout: null,
   pendingSync: false,
-  isPrivate: false
+  isPrivate: true
 };

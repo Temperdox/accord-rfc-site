@@ -51,17 +51,22 @@ export function renderPage() {
 
 export function hydrateGhAttachments(container) {
   if (!GH.isPrivate || !GH.pat) return;
-  var els = container.querySelectorAll('[data-gh-path]');
+  var els = container.querySelectorAll('[data-gh-path]:not([data-gh-hydrated])');
   els.forEach(async (el) => {
     var path = el.getAttribute('data-gh-path');
     if (!path) return;
+    el.setAttribute('data-gh-hydrated', 'pending');
     try {
       var b64 = await ghFetchFileContent(path);
+      if (!b64) throw new Error('Empty content');
       var mime = guessMime(path, el.tagName === 'VIDEO' ? 'video/mp4' : 'image/png');
-      el.src = `data:${mime};base64,${b64.replace(/\n/g, '')}`;
-      el.removeAttribute('data-gh-path');
+      // GitHub API returns b64 with newlines, need to strip them
+      var cleanB64 = b64.replace(/[\r\n]/gm, '');
+      el.src = `data:${mime};base64,${cleanB64}`;
+      el.setAttribute('data-gh-hydrated', 'done');
     } catch(e) {
       console.error('Failed to hydrate private attachment:', path, e);
+      el.setAttribute('data-gh-hydrated', 'error');
     }
   });
 }
