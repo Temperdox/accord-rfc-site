@@ -75,21 +75,69 @@ export function saveSettings() {
   showToast('Settings saved!', 'success');
 }
 
-export var EMOJIS = ['🗂️','🌐','🔒','⚡','🛡️','🔧','📡','🎯','🔗','💡','🚀','🔑','🌍','🏗️','📊','🎨','🔬','💻','🤝','📋','🦾','🧬','⚙️','🎛️','🌱','🔮','🏆','🎪','🌊','🔥','💫','🎭','🛸','🌙','⭐','🎲','🦋','🐸','🐱','WOLF','🦅','FOX','🐉','🧠','👾','🎵','🎸','🎯','🏴','🚩','✨','💎','🔴','🟢','🟡','🔵','🟣'];
+export var EMOJIS = [
+  { n: 'folder', e: '🗂️' }, { n: 'globe', e: '🌐' }, { n: 'lock', e: '🔒' }, { n: 'lightning', e: '⚡' },
+  { n: 'shield', e: '🛡️' }, { n: 'wrench', e: '🔧' }, { n: 'dish', e: '📡' }, { n: 'target', e: '🎯' },
+  { n: 'link', e: '🔗' }, { n: 'bulb', e: '💡' }, { n: 'rocket', e: '🚀' }, { n: 'key', e: '🔑' },
+  { n: 'earth', e: '🌍' }, { n: 'crane', e: '🏗️' }, { n: 'chart', e: '📊' }, { n: 'palette', e: '🎨' },
+  { n: 'microscope', e: '🔬' }, { n: 'laptop', e: '💻' }, { n: 'handshake', e: '🤝' }, { n: 'clipboard', e: '📋' },
+  { n: 'robot', e: '🦾' }, { n: 'dna', e: '🧬' }, { n: 'gear', e: '⚙️' }, { n: 'knob', e: '🎛️' },
+  { n: 'sprout', e: '🌱' }, { n: 'crystal', e: '🔮' }, { n: 'trophy', e: '🏆' }, { n: 'circus', e: '🎪' },
+  { n: 'wave', e: '🌊' }, { n: 'fire', e: '🔥' }, { n: 'sparkles', e: '💫' }, { n: 'theater', e: '🎭' },
+  { n: 'ufo', e: '🛸' }, { n: 'moon', e: '🌙' }, { n: 'star', e: '⭐' }, { n: 'dice', e: '🎲' },
+  { n: 'butterfly', e: '🦋' }, { n: 'frog', e: '🐸' }, { n: 'cat', e: '🐱' }, { n: 'wolf', e: '🐺' },
+  { n: 'eagle', e: '🦅' }, { n: 'fox', e: '🦊' }, { n: 'dragon', e: '🐉' }, { n: 'brain', e: '🧠' },
+  { n: 'invader', e: '👾' }, { n: 'music', e: '🎵' }, { n: 'guitar', e: '🎸' }, { n: 'flag', e: '🚩' },
+  { n: 'diamond', e: '💎' }, { n: 'circle-red', e: '🔴' }, { n: 'circle-green', e: '🟢' },
+  { n: 'circle-yellow', e: '🟡' }, { n: 'circle-blue', e: '🔵' }, { n: 'circle-purple', e: '🟣' }
+];
 
 export function renderEmojiGrids() {
   ['emoji-grid-cat','emoji-grid-tag'].forEach(function(id) {
-    var grid = document.getElementById(id);
-    if (!grid) return;
-    grid.innerHTML = EMOJIS.map(function(e) {
-      return '<button onmousedown="selectEmoji(\'' + id + '\',\'' + e + '\')" title="' + e + '">' + e + '</button>';
-    }).join('');
+    renderEmojiGrid(id, '');
   });
+}
+
+export function renderEmojiGrid(gridId, filter) {
+  var grid = document.getElementById(gridId);
+  if (!grid) return;
+  var fl = filter ? filter.toLowerCase() : '';
+  var matches = EMOJIS.filter(function(item) {
+    return !fl || item.n.toLowerCase().indexOf(fl) !== -1 || item.e.indexOf(fl) !== -1;
+  });
+  
+  if (!matches.length) {
+    grid.innerHTML = '<div style="padding:10px;font-size:11px;color:var(--text-muted);width:100%;text-align:center;">No emojis found</div>';
+    return;
+  }
+  
+  grid.innerHTML = matches.map(function(item) {
+    return '<button onmousedown="selectEmoji(\'' + gridId + '\',\'' + item.e + '\')" title="' + item.n + '">' + item.e + '</button>';
+  }).join('');
+}
+
+export function filterEmojis(gridId, val) {
+  renderEmojiGrid(gridId, val);
 }
 
 export function toggleEmojiPicker(pickerId) {
   var picker = document.getElementById(pickerId);
-  if (picker) picker.classList.toggle('show');
+  if (picker) {
+    var isShowing = picker.classList.contains('show');
+    // Close all other pickers
+    document.querySelectorAll('.emoji-picker-mini').forEach(function(p){ p.classList.remove('show'); });
+    if (!isShowing) {
+      picker.classList.add('show');
+      // Reset search
+      var searchInp = picker.querySelector('.emoji-search');
+      if (searchInp) {
+        searchInp.value = '';
+        var gridId = picker.querySelector('.emoji-grid').id;
+        renderEmojiGrid(gridId, '');
+        setTimeout(function(){ searchInp.focus(); }, 50);
+      }
+    }
+  }
 }
 
 export function selectEmoji(gridId, emoji) {
@@ -98,9 +146,10 @@ export function selectEmoji(gridId, emoji) {
     document.getElementById('new-cat-emoji-preview').textContent = emoji;
   } else {
     UI.tagEmojiSelected = emoji;
-    document.getElementById('editor-tag-emoji-display').textContent = emoji;
+    var display = document.getElementById('editor-tag-emoji-display');
+    if (display) display.textContent = emoji;
   }
-  // close picker
+  // close all pickers
   document.querySelectorAll('.emoji-picker-mini').forEach(function(p){ p.classList.remove('show'); });
 }
 

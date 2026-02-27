@@ -129,6 +129,9 @@ window.selectCat = selectCat;
 window.proceedToEditor = proceedToEditor;
 window.saveNewCategory = saveNewCategory;
 window.toggleEmojiPicker = toggleEmojiPicker;
+window.filterEmojis = (id, val) => {
+  import('./ui.js').then(m => m.filterEmojis(id, val));
+};
 window.onTagInput = onTagInput;
 window.hideSugAfterDelay = hideSugAfterDelay;
 window.tbInsert = tbInsert;
