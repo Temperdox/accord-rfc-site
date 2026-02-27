@@ -444,11 +444,11 @@ export function getRawGhUrl(path) {
   if (path.startsWith('http')) return path;
   
   // Construct raw.githubusercontent.com URL
-  // Format: https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
+  // Format: https://raw.githubusercontent.com/{owner}/{repo}/refs/heads/{branch}/{path}
   var repo = GH.repo;
   var branch = GH.branch || 'main';
   var fullPath = (GH.path ? GH.path + '/' : '') + path;
-  return `https://raw.githubusercontent.com/${repo}/${branch}/${fullPath.replace(/^\//, '')}`;
+  return `https://raw.githubusercontent.com/${repo}/refs/heads/${branch}/${fullPath.replace(/^\//, '')}`;
 }
 
 export function guessMime(filename, fallback) {
