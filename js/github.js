@@ -438,6 +438,19 @@ export function sanitizeFilename(name) {
   return name.replace(/[^a-zA-Z0-9._\-]/g, '_').slice(0, 80);
 }
 
+export function getRawGhUrl(path) {
+  if (!GH.repo || !path) return path;
+  if (path.startsWith('data:')) return path;
+  if (path.startsWith('http')) return path;
+  
+  // Construct raw.githubusercontent.com URL
+  // Format: https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
+  var repo = GH.repo;
+  var branch = GH.branch || 'main';
+  var fullPath = (GH.path ? GH.path + '/' : '') + path;
+  return `https://raw.githubusercontent.com/${repo}/${branch}/${fullPath.replace(/^\//, '')}`;
+}
+
 export function guessMime(filename, fallback) {
   var ext = (filename.split('.').pop() || '').toLowerCase();
   var map = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif',

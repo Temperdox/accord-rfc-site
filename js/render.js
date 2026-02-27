@@ -2,6 +2,7 @@ import { AppState, UI } from './state.js';
 import { getCatById, escHtml, fmtDate } from './ui.js';
 import { openEditor } from './editor.js';
 import { confirmAction } from './actions.js';
+import { getRawGhUrl } from './github.js';
 
 export function renderPage() {
   var view = UI.currentView;
@@ -83,9 +84,9 @@ export function renderCardHTML(s) {
     attHtml = '<div class="card-attachments">';
     s.attachments.forEach(function(a, i) {
       if (a.type === 'image') {
-        attHtml += '<div class="card-attachment"><img src="' + a.data + '" alt="attachment" loading="lazy"><div class="card-attachment-label"><i class="fa-solid fa-image"></i> ' + escHtml(a.name || 'image') + '</div></div>';
+        attHtml += '<div class="card-attachment"><img src="' + getRawGhUrl(a.data) + '" alt="attachment" loading="lazy"><div class="card-attachment-label"><i class="fa-solid fa-image"></i> ' + escHtml(a.name || 'image') + '</div></div>';
       } else if (a.type === 'video') {
-        attHtml += '<div class="card-attachment"><video src="' + a.data + '" controls preload="metadata"></video><div class="card-attachment-label"><i class="fa-solid fa-film"></i> ' + escHtml(a.name || 'video') + '</div></div>';
+        attHtml += '<div class="card-attachment"><video src="' + getRawGhUrl(a.data) + '" controls preload="metadata"></video><div class="card-attachment-label"><i class="fa-solid fa-film"></i> ' + escHtml(a.name || 'video') + '</div></div>';
       } else if (a.type === 'html') {
         var blob = new Blob([a.data], {type:'text/html'});
         var url = URL.createObjectURL(blob);

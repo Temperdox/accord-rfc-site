@@ -1,6 +1,7 @@
 import { AppState } from './state.js';
 import { escHtml } from './ui.js';
 import { renderMermaidInContainer, parseMarkdown } from './render.js';
+import { getRawGhUrl } from './github.js';
 
 export function renderDocs() {
   var container = document.getElementById('docs-content');
@@ -51,10 +52,21 @@ export function renderDocs() {
 
       var contentHtml = `<h2 class="docs-injected-header">${escHtml(catName)}</h2>`;
       grouped[catId].forEach(s => {
+        var sAttHtml = '';
+        if (s.attachments && s.attachments.length) {
+          s.attachments.forEach(a => {
+            if (a.type === 'image') {
+              sAttHtml += `<div class="docs-suggestion-att"><img src="${getRawGhUrl(a.data)}" alt="attachment"></div>`;
+            } else if (a.type === 'video') {
+              sAttHtml += `<div class="docs-suggestion-att"><video src="${getRawGhUrl(a.data)}" controls></video></div>`;
+            }
+          });
+        }
         contentHtml += `
           <div class="docs-suggestion-block">
             <h3>${escHtml(s.title)}</h3>
             <div class="docs-suggestion-body">${parseMarkdown(s.body)}</div>
+            ${sAttHtml}
           </div>
         `;
       });

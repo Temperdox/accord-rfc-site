@@ -73,3 +73,39 @@
 .docs-toc { background: var(--bg-panel2); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 32px; }
 .docs-toc-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px; }
 .docs-section-anchor { display: block; position: relative; top: -68px; visibility: hidden; }
+
+/* Injected Docs Sections */
+.docs-injected-header {
+  border-bottom: 2px solid var(--accent) !important;
+  margin-top: 60px !important;
+  color: var(--accent) !important;
+}
+.docs-suggestion-block {
+  margin-top: 32px;
+  padding: 24px;
+  background: var(--bg-panel2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.docs-suggestion-block h3 {
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+  font-size: 1.35em !important;
+}
+.docs-suggestion-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.docs-suggestion-att {
+  margin-top: 18px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.docs-suggestion-att img, 
+.docs-suggestion-att video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
