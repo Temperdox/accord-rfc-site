@@ -3,7 +3,7 @@ import { getSugById, showModal, closeModal, showToast } from './ui.js';
 import { saveData } from './storage.js';
 import { updateCounts, renderCatNav } from './categories.js';
 import { renderPage } from './render.js';
-import { ghPush } from './github.js';
+import { ghSchedulePush } from './github.js';
 
 export function confirmAction(action, id) {
   var s = getSugById(id);
@@ -72,7 +72,7 @@ export function executeAction(action, id, note) {
   updateCounts();
   renderPage();
   renderCatNav();
-  ghPush(true); // Auto-save
+  ghSchedulePush(); // Debounced sync
 }
 
 export function addHistory(action, sugId, title, by, note) {

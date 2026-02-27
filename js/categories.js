@@ -3,7 +3,7 @@ import { getCatById, showModal, closeModal, showToast, escHtml } from './ui.js';
 import { saveData } from './storage.js';
 import { renderPage } from './render.js';
 import { openEditor } from './editor.js';
-import { ghPush } from './github.js';
+import { ghSchedulePush } from './github.js';
 
 export function openCategoryPicker() {
   UI.editingId = null;
@@ -106,6 +106,7 @@ export function saveNewCategory() {
   var searchInp = document.getElementById('cat-search-input');
   renderCatOptions(searchInp ? searchInp.value : '');
   showToast('Category "' + name + '" created!', 'success');
+  ghSchedulePush();
 }
 
 export function renderCatNav() {

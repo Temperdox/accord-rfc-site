@@ -53,11 +53,27 @@ export async function ghTestConnection() {
 export function dmUpdateSyncStatus() {
   var dot   = document.getElementById('dm-sync-dot');
   var label = document.getElementById('dm-sync-label');
+  var topSync = document.getElementById('topbar-sync-status');
+
   if (!GH.pat || !GH.repo) {
     if (dot) dot.className = 'dm-sync-dot';
     if (label) label.textContent = 'Not configured — click Configure';
+    if (topSync) topSync.classList.remove('show');
     return;
   }
+  
+  if (GH.pendingSync) {
+    if (dot) dot.className = 'dm-sync-dot busy';
+    if (label) label.textContent = 'Changes queued (sync in 30s)...';
+    if (topSync) {
+      topSync.classList.add('show');
+      var topLabel = document.getElementById('topbar-sync-label');
+      if (topLabel) topLabel.textContent = 'Syncing in 30s...';
+    }
+    return;
+  }
+
+  if (topSync) topSync.classList.remove('show');
   if (dot) dot.className = 'dm-sync-dot connected';
   var parts = [GH.repo + ' · ' + GH.branch];
   if (GH.path) parts.push('/' + GH.path);
@@ -73,6 +89,8 @@ export function dmSetBusy(busy) {
   var pullBtn = document.getElementById('gh-pull-btn');
   var logBox = document.getElementById('dm-log');
   
+  dmSetSyncing(busy);
+
   if (busy) {
     if (dot) dot.className = 'dm-sync-dot busy';
     if (pushBtn) { pushBtn.disabled = true; }
@@ -95,6 +113,19 @@ export function dmSetStatus(status) {
   logBox.classList.remove('busy', 'ok', 'err');
   if (status === 'ok') logBox.classList.add('ok');
   if (status === 'err') logBox.classList.add('err');
+}
+
+export function dmSetSyncing(syncing) {
+  var topSync = document.getElementById('topbar-sync-status');
+  var topLabel = document.getElementById('topbar-sync-label');
+  if (topSync) {
+    if (syncing) {
+      topSync.classList.add('show');
+      if (topLabel) topLabel.textContent = 'Syncing...';
+    } else if (!GH.pendingSync) {
+      topSync.classList.remove('show');
+    }
+  }
 }
 
 export function dmClearLog() {
@@ -238,6 +269,12 @@ export async function ghPullAndMerge(quiet = false) {
 
 // ─── PUSH ───────────────────────────────────
 export async function ghPush(auto = false) {
+  if (GH.syncTimeout) {
+    clearTimeout(GH.syncTimeout);
+    GH.syncTimeout = null;
+  }
+  GH.pendingSync = false;
+  
   ghLoadConfig();
   if (!GH.pat || !GH.repo) {
     if (!auto) {
@@ -253,6 +290,7 @@ export async function ghPush(auto = false) {
   } else {
     dmLog('Auto-save triggered...', 'info');
     showToast('Saving changes...', 'info');
+    dmSetSyncing(true);
   }
 
   try {
@@ -337,7 +375,19 @@ export async function ghPush(auto = false) {
     console.error(e);
   } finally {
     if (!auto) dmSetBusy(false);
+    else dmSetSyncing(false);
   }
+}
+
+export function ghSchedulePush() {
+  if (GH.syncTimeout) clearTimeout(GH.syncTimeout);
+  GH.pendingSync = true;
+  dmUpdateSyncStatus();
+  GH.syncTimeout = setTimeout(async function() {
+    GH.syncTimeout = null;
+    GH.pendingSync = false;
+    await ghPush(true);
+  }, 30000);
 }
 
 // ─── FULL PULL (Manual) ────────────────────

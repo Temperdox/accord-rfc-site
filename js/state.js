@@ -26,5 +26,7 @@ export var UI = {
 export var GH = {
   pat: '', repo: '', branch: 'main', path: '',
   lastPushAt: null, lastPushSha: null, lastPullAt: null,
-  headSha: null // Tracks the commit we are currently based on
+  headSha: null, // Tracks the commit we are currently based on
+  syncTimeout: null,
+  pendingSync: false
 };

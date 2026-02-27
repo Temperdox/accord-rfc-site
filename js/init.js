@@ -11,7 +11,7 @@ import '../css/responsive.css';
 
 import { AppState, UI } from './state.js';
 import { loadData } from './storage.js';
-import { ghLoadConfig, ghTestConnection, ghSaveConfig, ghPull, ghPush, togglePatVisibility, toggleGhConfig, ghCheckForUpdates } from './github.js';
+import { ghLoadConfig, ghTestConnection, ghSaveConfig, ghPull, ghPush, ghSchedulePush, togglePatVisibility, toggleGhConfig, ghCheckForUpdates } from './github.js';
 import { renderEmojiGrids, toggleTheme, openSettings, saveSettings, toggleEmojiPicker, onTagInput, hideSugAfterDelay, openDataModal, closeModal, selectEmoji, selectTag, toggleSidebar, openNotifications, clearNotifications, updateNotifBadge } from './ui.js';
 import { updateCounts, renderCatNav, openCategoryPicker, filterCatOptions, saveNewCategory, openNewCatModal, selectCat, proceedToEditor, filterCategory } from './categories.js';
 import { renderPage, renderHistory, renderMermaidInContainer } from './render.js';
@@ -151,6 +151,7 @@ window.ghTestConnection = ghTestConnection;
 window.ghSaveConfig = ghSaveConfig;
 window.ghPull = ghPull;
 window.ghPush = ghPush;
+window.ghSchedulePush = ghSchedulePush;
 window.toggleGhConfig = toggleGhConfig;
 window.exportZip = exportZip;
 window.importZip = importZip;
@@ -226,4 +227,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Watchdog: Check for updates every 60s
   setInterval(ghCheckForUpdates, 60000);
+
+  window.addEventListener('beforeunload', function (e) {
+    if (GH && GH.pendingSync) {
+      e.preventDefault();
+      e.returnValue = 'You have pending changes that haven\'t been synced to GitHub yet.';
+    }
+  });
 });
