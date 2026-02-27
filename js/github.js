@@ -448,7 +448,12 @@ export function getRawGhUrl(path) {
   var repo = GH.repo;
   var branch = GH.branch || 'main';
   var fullPath = (GH.path ? GH.path + '/' : '') + path;
-  return `https://raw.githubusercontent.com/${repo}/refs/heads/${branch}/${fullPath.replace(/^\//, '')}`;
+  var url = `https://raw.githubusercontent.com/${repo}/refs/heads/${branch}/${fullPath.replace(/^\//, '')}`;
+  
+  if (GH.pat) {
+    url += (url.indexOf('?') === -1 ? '?' : '&') + 'token=' + GH.pat;
+  }
+  return url;
 }
 
 export function guessMime(filename, fallback) {
