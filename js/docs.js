@@ -1,6 +1,6 @@
-import { AppState } from './state.js';
+import { AppState, GH } from './state.js';
 import { escHtml } from './ui.js';
-import { renderMermaidInContainer, parseMarkdown } from './render.js';
+import { renderMermaidInContainer, parseMarkdown, hydrateGhAttachments } from './render.js';
 import { getRawGhUrl } from './github.js';
 
 export function renderDocs() {
@@ -55,10 +55,12 @@ export function renderDocs() {
         var sAttHtml = '';
         if (s.attachments && s.attachments.length) {
           s.attachments.forEach(a => {
+            var src = getRawGhUrl(a.data);
+            var dataAttr = (GH.isPrivate && !a.data.startsWith('data:')) ? ' data-gh-path="' + escHtml(a.data) + '"' : '';
             if (a.type === 'image') {
-              sAttHtml += `<div class="docs-suggestion-att"><img src="${getRawGhUrl(a.data)}" alt="attachment"></div>`;
+              sAttHtml += `<div class="docs-suggestion-att"><img src="${src}"${dataAttr} alt="attachment"></div>`;
             } else if (a.type === 'video') {
-              sAttHtml += `<div class="docs-suggestion-att"><video src="${getRawGhUrl(a.data)}" controls></video></div>`;
+              sAttHtml += `<div class="docs-suggestion-att"><video src="${src}"${dataAttr} controls></video></div>`;
             }
           });
         }
@@ -126,6 +128,7 @@ export function renderDocs() {
 
   // 6. Setup Intersection Observer for Scroll-Spy
   setupDocsObserver();
+  hydrateGhAttachments(container);
 }
 
 var docsObserver = null;

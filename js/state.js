@@ -28,5 +28,6 @@ export var GH = {
   lastPushAt: null, lastPushSha: null, lastPullAt: null,
   headSha: null, // Tracks the commit we are currently based on
   syncTimeout: null,
-  pendingSync: false
+  pendingSync: false,
+  isPrivate: false
 };

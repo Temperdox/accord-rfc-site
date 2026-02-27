@@ -36,6 +36,8 @@ export async function ghTestConnection() {
   statusEl.style.display = 'none';
   try {
     var data = await ghAPI('GET', '/repos/'+GH.repo);
+    GH.isPrivate = data.private;
+    ghSaveConfigLocal();
     statusEl.className = 'dm-gh-status ok';
     statusEl.textContent = '✓ Connected to '+data.full_name+' ('+data.default_branch+' default) · '+(data.private?'private':'public')+' repo';
     statusEl.style.display = 'block';
@@ -443,6 +445,8 @@ export function getRawGhUrl(path) {
   if (path.startsWith('data:')) return path;
   if (path.startsWith('http')) return path;
   
+  if (GH.isPrivate) return path; // Let the hydrator handle private paths
+
   // Construct raw.githubusercontent.com URL
   // Format: https://raw.githubusercontent.com/{owner}/{repo}/refs/heads/{branch}/{path}
   var repo = GH.repo;
@@ -454,6 +458,13 @@ export function getRawGhUrl(path) {
     url += (url.indexOf('?') === -1 ? '?' : '&') + 'token=' + GH.pat;
   }
   return url;
+}
+
+export async function ghFetchFileContent(path) {
+  var basePath = GH.path ? GH.path + '/' : '';
+  var fullPath = basePath + path;
+  var data = await ghAPI('GET', '/repos/'+GH.repo+'/contents/'+encodeURIComponent(fullPath)+'?ref='+encodeURIComponent(GH.branch));
+  return data.content; // base64 encoded
 }
 
 export function guessMime(filename, fallback) {

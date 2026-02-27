@@ -1,8 +1,8 @@
-import { AppState, UI } from './state.js';
+import { AppState, UI, GH } from './state.js';
 import { getCatById, escHtml, fmtDate } from './ui.js';
 import { openEditor } from './editor.js';
 import { confirmAction } from './actions.js';
-import { getRawGhUrl } from './github.js';
+import { getRawGhUrl, ghFetchFileContent, guessMime } from './github.js';
 
 export function renderPage() {
   var view = UI.currentView;
@@ -46,6 +46,24 @@ export function renderPage() {
   });
   container.innerHTML = html;
   renderMermaidInContainer(container);
+  hydrateGhAttachments(container);
+}
+
+export function hydrateGhAttachments(container) {
+  if (!GH.isPrivate || !GH.pat) return;
+  var els = container.querySelectorAll('[data-gh-path]');
+  els.forEach(async (el) => {
+    var path = el.getAttribute('data-gh-path');
+    if (!path) return;
+    try {
+      var b64 = await ghFetchFileContent(path);
+      var mime = guessMime(path, el.tagName === 'VIDEO' ? 'video/mp4' : 'image/png');
+      el.src = `data:${mime};base64,${b64.replace(/\n/g, '')}`;
+      el.removeAttribute('data-gh-path');
+    } catch(e) {
+      console.error('Failed to hydrate private attachment:', path, e);
+    }
+  });
 }
 
 export function renderCardHTML(s) {
@@ -84,9 +102,13 @@ export function renderCardHTML(s) {
     attHtml = '<div class="card-attachments">';
     s.attachments.forEach(function(a, i) {
       if (a.type === 'image') {
-        attHtml += '<div class="card-attachment"><img src="' + getRawGhUrl(a.data) + '" alt="attachment" loading="lazy"><div class="card-attachment-label"><i class="fa-solid fa-image"></i> ' + escHtml(a.name || 'image') + '</div></div>';
+        var src = getRawGhUrl(a.data);
+        var dataAttr = (GH.isPrivate && !a.data.startsWith('data:')) ? ' data-gh-path="' + escHtml(a.data) + '"' : '';
+        attHtml += '<div class="card-attachment"><img src="' + src + '"' + dataAttr + ' alt="attachment" loading="lazy"><div class="card-attachment-label"><i class="fa-solid fa-image"></i> ' + escHtml(a.name || 'image') + '</div></div>';
       } else if (a.type === 'video') {
-        attHtml += '<div class="card-attachment"><video src="' + getRawGhUrl(a.data) + '" controls preload="metadata"></video><div class="card-attachment-label"><i class="fa-solid fa-film"></i> ' + escHtml(a.name || 'video') + '</div></div>';
+        var src = getRawGhUrl(a.data);
+        var dataAttr = (GH.isPrivate && !a.data.startsWith('data:')) ? ' data-gh-path="' + escHtml(a.data) + '"' : '';
+        attHtml += '<div class="card-attachment"><video src="' + src + '"' + dataAttr + ' controls preload="metadata"></video><div class="card-attachment-label"><i class="fa-solid fa-film"></i> ' + escHtml(a.name || 'video') + '</div></div>';
       } else if (a.type === 'html') {
         var blob = new Blob([a.data], {type:'text/html'});
         var url = URL.createObjectURL(blob);
