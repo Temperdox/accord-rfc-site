@@ -283,14 +283,15 @@
 /* History Filter Grid */
 .history-filters-grid {
   display: grid;
-  grid-template-columns: 1fr auto auto auto auto;
-  gap: 12px;
+  grid-template-columns: 1fr auto auto minmax(min-content, auto) auto;
+  gap: 16px;
   align-items: flex-end;
   margin-bottom: 24px;
   background: var(--bg-panel);
   padding: 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
+  width: 100%;
 }
 .filter-group {
   display: flex;

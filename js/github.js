@@ -67,12 +67,13 @@ export function dmUpdateSyncStatus() {
   }
   
   if (GH.pendingSync) {
+    var remaining = GH.syncTargetTime ? Math.max(0, Math.ceil((GH.syncTargetTime - Date.now()) / 1000)) : 30;
     if (dot) dot.className = 'dm-sync-dot busy';
-    if (label) label.textContent = 'Changes queued (sync in 30s)...';
+    if (label) label.textContent = 'Changes queued (sync in ' + remaining + 's)...';
     if (topSync) {
       topSync.classList.add('show');
       var topLabel = document.getElementById('topbar-sync-label');
-      if (topLabel) topLabel.textContent = 'Syncing in 30s...';
+      if (topLabel) topLabel.textContent = 'Syncing in ' + remaining + 's...';
     }
     return;
   }
@@ -274,10 +275,11 @@ export async function ghPullAndMerge(quiet = false) {
 // ─── PUSH ───────────────────────────────────
 export async function ghPush(auto = false) {
   if (GH.syncTimeout) {
-    clearTimeout(GH.syncTimeout);
+    clearInterval(GH.syncTimeout);
     GH.syncTimeout = null;
   }
   GH.pendingSync = false;
+  GH.syncTargetTime = null;
   
   ghLoadConfig();
   if (!GH.pat || !GH.repo) {
@@ -384,14 +386,23 @@ export async function ghPush(auto = false) {
 }
 
 export function ghSchedulePush() {
-  if (GH.syncTimeout) clearTimeout(GH.syncTimeout);
+  if (GH.syncTimeout) clearInterval(GH.syncTimeout);
   GH.pendingSync = true;
+  GH.syncTargetTime = Date.now() + 30000;
   dmUpdateSyncStatus();
-  GH.syncTimeout = setTimeout(async function() {
-    GH.syncTimeout = null;
-    GH.pendingSync = false;
-    await ghPush(true);
-  }, 30000);
+  
+  GH.syncTimeout = setInterval(async function() {
+    var remaining = Math.max(0, Math.ceil((GH.syncTargetTime - Date.now()) / 1000));
+    if (remaining <= 0) {
+      clearInterval(GH.syncTimeout);
+      GH.syncTimeout = null;
+      GH.pendingSync = false;
+      GH.syncTargetTime = null;
+      await ghPush(true);
+    } else {
+      dmUpdateSyncStatus();
+    }
+  }, 1000);
 }
 
 // ─── FULL PULL (Manual) ────────────────────
