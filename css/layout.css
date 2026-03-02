@@ -319,7 +319,7 @@ body {
   max-width: 1000px;
   animation: pageFade 0.2s ease;
 }
-#page-history.page { max-width: 1200px; }
+#page-history.page { max-width: 1300px; }
 .page.active { display: block; }
 @keyframes pageFade {
   from { opacity: 0; transform: translateY(6px); }
