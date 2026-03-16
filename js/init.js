@@ -19,7 +19,7 @@ import { renderInfoBoxes, tbInsert, togglePreview, triggerAttach, handleDropZone
 import { confirmAction, executeConfirmAction } from './actions.js';
 import { renderDocs, scrollToDocSection, updateDocsActiveNav } from './docs.js';
 import { renderDownloadPage } from './download.js';
-import { exportZip, importZip, openPasteJson, loadPastedJson, pickSaveFolder } from './data.js';
+import { exportZip, downloadDataAsText, importZip, openPasteJson, loadPastedJson, pickSaveFolder } from './data.js';
 
 // Global attach functions to window for onclick handlers
 window.setView = (view, btn) => {
@@ -157,6 +157,7 @@ window.ghPush = ghPush;
 window.ghSchedulePush = ghSchedulePush;
 window.toggleGhConfig = toggleGhConfig;
 window.exportZip = exportZip;
+window.downloadDataAsText = downloadDataAsText;
 window.importZip = importZip;
 window.openPasteJson = openPasteJson;
 window.pickSaveFolder = pickSaveFolder;

@@ -35,6 +35,81 @@ export async function exportZip() {
   if (btn) { btn.innerHTML = '<i class="fa-solid fa-download"></i> Export ZIP'; btn.disabled = false; }
 }
 
+export function downloadDataAsText() {
+  let text = 'ACCORD SUGGESTION MANAGER - DATA EXPORT\n';
+  text += 'Generated on: ' + new Date().toLocaleString() + '\n';
+  text += 'Team: ' + AppState.config.teamName + '\n\n';
+
+  if (AppState.docs && AppState.docs.length) {
+    text += '================================================================================\n';
+    text += 'DOCUMENTATION\n';
+    text += '================================================================================\n\n';
+    AppState.docs.forEach(doc => {
+      const level = doc.level || 1;
+      const prefix = '#'.repeat(level) + ' ';
+      text += prefix + (doc.title || 'Untitled Section').toUpperCase() + '\n';
+      if (doc.contentHtml) {
+        const temp = document.createElement('div');
+        temp.innerHTML = doc.contentHtml;
+        const plainText = temp.textContent || temp.innerText || '';
+        text += plainText.trim() + '\n';
+      }
+      text += '\n';
+    });
+    text += '\n';
+  }
+
+  if (AppState.suggestions && AppState.suggestions.length) {
+    text += '================================================================================\n';
+    text += 'SUGGESTIONS\n';
+    text += '================================================================================\n\n';
+    
+    const statuses = ['pending', 'approved', 'rejected', 'archived'];
+    statuses.forEach(status => {
+      const items = AppState.suggestions.filter(s => s.status === status);
+      if (items.length === 0) return;
+
+      text += '--- ' + status.toUpperCase() + ' (' + items.length + ') ---\n\n';
+      
+      items.forEach(s => {
+        const cat = AppState.categories.find(c => c.id === s.categoryId);
+        const catName = cat ? cat.name : 'Uncategorized';
+        
+        text += 'TITLE: ' + s.title + '\n';
+        text += 'CATEGORY: ' + catName + '\n';
+        text += 'AUTHOR: ' + (s.suggestedBy || AppState.config.teamName) + '\n';
+        text += 'DATE: ' + new Date(s.createdAt).toLocaleString() + '\n';
+        if (s.tag && s.tag.name) text += 'TAG: ' + s.tag.name + '\n';
+        
+        if (s.infoBoxes && s.infoBoxes.length) {
+          s.infoBoxes.forEach(b => {
+            if (b.label || b.value) {
+              text += (b.label || 'Info') + ': ' + (b.value || '') + '\n';
+            }
+          });
+        }
+        
+        text += '\nDESCRIPTION:\n' + (s.body || '') + '\n';
+        
+        if (s.attachments && s.attachments.length) {
+          text += '\nATTACHMENTS: ' + s.attachments.length + ' file(s)\n';
+        }
+        
+        text += '\n--------------------------------------------------------------------------------\n\n';
+      });
+    });
+  }
+
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'accord-data-export.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('accord-data-export.txt downloaded!', 'success');
+}
+
 export async function importZip(input) {
   var file = input.files[0]; if (!file) return; input.value = '';
   try {
